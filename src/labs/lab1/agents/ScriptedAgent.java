@@ -26,6 +26,7 @@ public class ScriptedAgent
 
 	private Integer    myUnitId;            // id of the unit we control (used to lookop UnitView from state)
     private Coordinate coinLocation;        // Coordinate of the COIN (only one) on the map
+    boolean findedCoin = false; // whether we have found the coin yet
 
 
     /**
@@ -146,7 +147,26 @@ public class ScriptedAgent
 
     // Declar e a variable to hold our move
     Direction move = null;
+    if(findedCoin == false){
+        // if we have not found the coin yet, move towards the coin
+        // Move vertically first in rows
+        if (myPos.row() < this.getCoinLocation().row()) {
+            move = Direction.DOWN; 
+        } else if (myPos.row() > this.getCoinLocation().row()) {
+            move = Direction.UP;
 
+        // If same row, move in the same column
+        } else if (myPos.col() < this.getCoinLocation().col()) {
+            move = Direction.RIGHT;
+        } else if (myPos.col() > this.getCoinLocation().col()) {
+            move = Direction.LEFT;
+        }
+        // check if we have reached the coin
+        if (myPos.equals(this.getCoinLocation())){
+            findedCoin = true; // we have found the coin
+        }
+    } else {
+        // we have found the coin, now move towards the finish point
     // Move vertically first in rows
     if (myPos.row() < finish.row()) {
         move = Direction.DOWN; 
