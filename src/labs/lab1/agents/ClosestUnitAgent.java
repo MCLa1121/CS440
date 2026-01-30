@@ -146,6 +146,7 @@ public class ClosestUnitAgent
         actions.put(Bestid, move);
         return actions;
 	}
+}
 
 }
 
