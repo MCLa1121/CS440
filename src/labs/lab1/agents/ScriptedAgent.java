@@ -179,6 +179,7 @@ public class ScriptedAgent
     } else if (myPos.col() > finish.col()) {
         move = Direction.LEFT;
     }
+}
     // assign the move 
     actions.put(this.getMyUnitId(), move);
 
