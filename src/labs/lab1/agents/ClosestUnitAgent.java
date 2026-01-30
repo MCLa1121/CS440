@@ -122,7 +122,7 @@ public class ClosestUnitAgent
         // Get current position of our unit from the StateView
         for (Integer id : this.AllUnitIds) {
             Coordinate pos = state.getUnitView(this.getAgentId(), id).currentPosition();
-            double d = distance(pos, coinLocation);
+            double d = distance(pos, finishLocation);
             if (d < best){
                 best =d;
                 Bestid = id;
