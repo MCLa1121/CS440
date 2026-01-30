@@ -114,6 +114,7 @@ public class ClosestUnitAgent
                 Coordinate here = new Coordinate(i, j);
                 if(state.getTileState(here) == Tile.State.FINISH) { // Tile imported 
                     finishLocation = here; // we found the finish location
+                    break;//stop searching
                 }
             }
         }
