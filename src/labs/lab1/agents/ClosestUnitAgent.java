@@ -120,6 +120,7 @@ public class ClosestUnitAgent
         double best = Double.MAX_VALUE; // initialize best distance to max value, so once we find a unit, we replace it
         // now we need to find the closest unit to the coin
         // Get current position of our unit from the StateView
+        Direction move = null;
         for (Integer id : this.AllUnitIds) {
             Coordinate pos = state.getUnitView(this.getAgentId(), id).currentPosition();
             double d = distance(pos, finishLocation);
@@ -128,23 +129,22 @@ public class ClosestUnitAgent
                 Bestid = id;
             }
             
-        Direction move = null;
         //we want to move the closest unit to the coin
         Coordinate bestPos = state.getUnitView(this.getAgentId(), Bestid).currentPosition();
 
         // Match column first 
-        if (bestPos.col() < coinLocation.col()) 
+        if (bestPos.col() < finishLocation.col()) 
             move = Direction.RIGHT;
-        else if (bestPos.col() > coinLocation.col()) 
+        else if (bestPos.col() > finishLocation.col()) 
             move = Direction.LEFT;
         // If column matches, then match row 
-        else if (bestPos.row() < coinLocation.row()) 
+        else if (bestPos.row() < finishLocation.row()) 
             move = Direction.DOWN;
-        else if (bestPos.row() > coinLocation.row()) 
+        else if (bestPos.row() > finishLocation.row()) 
             move = Direction.UP;
+    }
        
         actions.put(Bestid, move);
-}
         return actions;
 	
 }
