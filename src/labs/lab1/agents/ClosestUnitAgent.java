@@ -144,8 +144,9 @@ public class ClosestUnitAgent
             move = Direction.UP;
        
         actions.put(Bestid, move);
+}
         return actions;
-	}
+	
 }
 
 }
