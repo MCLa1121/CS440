@@ -62,7 +62,11 @@ public class BFSMazeAgent
                                    final Coordinate goal,
                                    final StateView stateView)
     {
-        // TODO: complete me!
+        //TODO: complete me!
+        //this is the queue used to store the node we have discovered but not finished 
+        Queue<Path<Coordinate>> queue = new LinkedList<>();
+        //this is the set used to store the node we have already visited
+        HashSet<Coordinate> visited = new HashSet<>();
         return null;
     }
 
