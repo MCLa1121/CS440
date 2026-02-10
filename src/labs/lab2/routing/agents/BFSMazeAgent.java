@@ -67,6 +67,15 @@ public class BFSMazeAgent
         Queue<Path<Coordinate>> queue = new LinkedList<>();
         //this is the set used to store the node we have already visited
         HashSet<Coordinate> visited = new HashSet<>();
+
+        //initialize a starting path
+        Path<Coordinate> start = new Path<>(src);
+        //we add the fist path to the queue 
+        queue.add(start);
+        //implementing BFS
+        while (!queue.isEmpty()){
+
+        }
         return null;
     }
 
