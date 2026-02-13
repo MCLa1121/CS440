@@ -93,6 +93,41 @@ public class DFSMazeAgent
             if(!visited.contains(cur)){
                 visited.add(cur);
             }
+
+            //now find every direction the path leads to 
+            for(Direction dir : getAllDirections()){
+
+                //check new row and col 
+                int newrow = cur.row() + dir.getDy();
+                int newcol = cur.col() + dir.getDx();
+
+                //checking whether the new row and col are vaild or not
+                if(newrow < 0 || newrow >= stateView.getNumRows() || newcol < 0 
+                || newcol >= stateView.getNumCols()){
+                    continue;
+                }
+
+                // if it is vaild, we create a new coordinate for it
+                // since this is the neighbour of the current path coordination
+                Coordinate neighbour = new Coordinate(newrow, newcol);
+
+                // Check whether the Tile of the new coordinate is a wall or not 
+                if(stateView.getTileState(neighbour) == Tile.State.WALL){
+                    continue;
+                }
+
+                // check if have been visited or not
+                if (visited.contains(neighbour)){
+                    continue;
+                }
+
+                // now we can extend the path if it is a vaild path
+                //since DFS dont care about weight, we assume it is 1d
+                Path<Coordinate> newPath = new Path<Coordinate>(currentPath, neighbour, 1d);
+
+                stack.add(newPath);
+                visited.add(neighbour);
+            }
         }
         return null;
     }
