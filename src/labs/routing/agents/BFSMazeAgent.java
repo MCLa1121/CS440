@@ -62,11 +62,15 @@ public class BFSMazeAgent
         Direction UP_Left = Direction.UP_LEFT;
         Direction DOWN_Right = Direction.DOWN_RIGHT;
         Direction DOWN_Left = Direction.DOWN_LEFT;
-    //create an array to store the ordinal direction
-        Direction[] OrdinalDir = {UP_Left, UP_Right, DOWN_Left, DOWN_Right};
+        Direction UP = Direction.UP_RIGHT;
+        Direction Left = Direction.UP_LEFT;
+        Direction Right = Direction.DOWN_RIGHT;
+        Direction DOWN = Direction.DOWN_LEFT;
+    //create an array to store all the direction
+        Direction[] OrdinalDir = {UP_Left, UP_Right, DOWN_Left, DOWN_Right, UP, Left, Right, DOWN };
 
-        public Direction getOrdinalDirections(int i) {
-            return OrdinalDir[i];
+        public Direction[] getAllDirections() {
+            return OrdinalDir;
         }
 
     @Override
@@ -92,7 +96,7 @@ public class BFSMazeAgent
             //get the current coordinate
             Coordinate cur = CurrentPath.current();
 
-            for(Direction dir : Direction.getCardinalDirections()){
+            for(Direction dir : getAllDirections()){
                 //checking the new row and col for each move
                 int newrow = cur.row() + dir.getDy();
                 int newcol = cur.col() + dir.getDx();
