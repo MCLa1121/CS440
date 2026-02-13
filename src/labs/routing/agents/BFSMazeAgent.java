@@ -57,12 +57,25 @@ public class BFSMazeAgent
         return false;
     }
 
+    //create ordinal direction
+        Direction UP_Right = Direction.UP_RIGHT;
+        Direction UP_Left = Direction.UP_LEFT;
+        Direction DOWN_Right = Direction.DOWN_RIGHT;
+        Direction DOWN_Left = Direction.DOWN_LEFT;
+    //create an array to store the ordinal direction
+        Direction[] OrdinalDir = {UP_Left, UP_Right, DOWN_Left, DOWN_Right};
+
+        public Direction getOrdinalDirections(int i) {
+            return OrdinalDir[i];
+        }
+
     @Override
     public Path<Coordinate> search(final Coordinate src,
                                    final Coordinate goal,
                                    final StateView stateView)
     {
         //TODO: complete me!
+
         //this is the queue used to store the node we have discovered but not finished 
         Queue<Path<Coordinate>> queue = new LinkedList<>();
         //this is the set used to store the node we have already visited
@@ -74,8 +87,10 @@ public class BFSMazeAgent
         queue.add(start);
         //implementing BFS
         while (!queue.isEmpty()){
-
-        }
+            //enqueue so we know the current path 
+            Path<Coordinate> CurrentPath = queue.poll();
+            //get the current coordinate
+            Coordinate cur = CurrentPath.current();
         return null;
     }
 
