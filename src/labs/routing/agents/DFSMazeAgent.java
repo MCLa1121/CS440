@@ -83,7 +83,7 @@ public class DFSMazeAgent
         //create a path started from the src 
         Path<Coordinate> start = new Path<Coordinate>(src);
         //add the src to the stack
-        stack.add(start);
+        stack.push(start);
         while(!stack.isEmpty()){
             // first we pop the element in the stack, which is our first or current path 
             Path<Coordinate> currentPath = stack.pop();
@@ -125,7 +125,7 @@ public class DFSMazeAgent
                 //since DFS dont care about weight, we assume it is 1d
                 Path<Coordinate> newPath = new Path<Coordinate>(currentPath, neighbour, 1d);
 
-                stack.add(newPath);
+                stack.push(newPath);
                 visited.add(neighbour);
             }
         }
