@@ -53,12 +53,47 @@ public class DFSMazeAgent
         return false;
     }
 
+    //creating direction
+    Direction UP_Right = Direction.UP_RIGHT;
+        Direction UP_Left = Direction.UP_LEFT;
+        Direction DOWN_Right = Direction.DOWN_RIGHT;
+        Direction DOWN_Left = Direction.DOWN_LEFT;
+        Direction Up = Direction.UP;
+        Direction Left = Direction.LEFT;
+        Direction Right = Direction.RIGHT;
+        Direction Down = Direction.DOWN;
+    //create an array to store all the direction
+        Direction[] AllDir = {Up, Left, Right, Down, UP_Left, UP_Right, DOWN_Left, DOWN_Right  };
+
+        public Direction[] getAllDirections() {
+            return AllDir;
+        }
+
     @Override
     public Path<Coordinate> search(final Coordinate src,
                                    final Coordinate goal,
                                    final StateView stateView)
     {
         // TODO: complete me!
+        
+        //we create a stack to store the node we are going to process 
+        Stack<Path<Coordinate>> stack = new Stack<>(); 
+        //Create a hashset to store node we have visited 
+        HashSet<Coordinate> visited = new HashSet<>();
+        //create a path started from the src 
+        Path<Coordinate> start = new Path<Coordinate>(src);
+        //add the src to the stack
+        stack.add(start);
+        while(!stack.isEmpty()){
+            // first we pop the element in the stack, which is our first or current path 
+            Path<Coordinate> currentPath = stack.pop();
+            // getting the coordinate of the new path
+            Coordinate cur = currentPath.current();
+            // we add this to the visited set if it is not in it 
+            if(!visited.contains(cur)){
+                visited.add(cur);
+            }
+        }
         return null;
     }
 
