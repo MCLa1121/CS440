@@ -91,7 +91,21 @@ public class BFSMazeAgent
             Path<Coordinate> CurrentPath = queue.poll();
             //get the current coordinate
             Coordinate cur = CurrentPath.current();
+
+            for(Direction dir : Direction.getCardinalDirections()){
+                //checking the new row and col for each move
+                int newrow = cur.row() + dir.getDy();
+                int newcol = cur.col() + dir.getDx();
+
+                //checking whether the new row and col are vaild or nor
+                if(newrow < 0 || newrow >= stateView.getNumRows() || newcol < 0 
+                || newcol >= stateView.getNumCols()){
+                    continue;
+                }
+
+            }
+        }
         return null;
     }
-
+    
 }
