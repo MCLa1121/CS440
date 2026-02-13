@@ -103,6 +103,32 @@ public class BFSMazeAgent
                     continue;
                 }
 
+                // if it is vaild, we create a new coordinate for it
+                // since this is the neighbour of the current path coordination
+                Coordinate neighbour = new Coordinate(newrow, newcol);
+
+                // Check whether the Tile of the new coordinate is a wall or not 
+                if(stateView.getTileState(neighbour) == Tile.State.WALL){
+                    continue;
+                }
+
+                // check if have been visited or not
+                if (visited.contains(neighbour)){
+                    continue;
+                }
+
+                // now we can extend the path if it is a vaild path
+                //since BFS is unweighted, we assume it is 1d
+                Path<Coordinate> newPath = new Path<Coordinate>(CurrentPath, neighbour, 1d);
+
+                //Check whether we have reach the goal for when reaching neighbour 
+                if(neighbour.equals(goal)){
+                    return newPath; //since BFS gives us the shortest once we reach the goal 
+                }
+
+                //if not the goal, we add it to the queue and mark it been visited
+                queue.add(newPath);
+                visited.add(neighbour); 
             }
         }
         return null;
