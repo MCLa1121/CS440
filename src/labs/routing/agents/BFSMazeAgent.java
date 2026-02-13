@@ -62,15 +62,15 @@ public class BFSMazeAgent
         Direction UP_Left = Direction.UP_LEFT;
         Direction DOWN_Right = Direction.DOWN_RIGHT;
         Direction DOWN_Left = Direction.DOWN_LEFT;
-        Direction UP = Direction.UP_RIGHT;
-        Direction Left = Direction.UP_LEFT;
-        Direction Right = Direction.DOWN_RIGHT;
-        Direction DOWN = Direction.DOWN_LEFT;
+        Direction Up = Direction.UP;
+        Direction Left = Direction.LEFT;
+        Direction Right = Direction.RIGHT;
+        Direction Down = Direction.DOWN;
     //create an array to store all the direction
-        Direction[] OrdinalDir = {UP_Left, UP_Right, DOWN_Left, DOWN_Right, UP, Left, Right, DOWN };
+        Direction[] AllDir = {Up, Left, Right, Down, UP_Left, UP_Right, DOWN_Left, DOWN_Right  };
 
         public Direction[] getAllDirections() {
-            return OrdinalDir;
+            return AllDir;
         }
 
     @Override
@@ -101,7 +101,7 @@ public class BFSMazeAgent
                 int newrow = cur.row() + dir.getDy();
                 int newcol = cur.col() + dir.getDx();
 
-                //checking whether the new row and col are vaild or nor
+                //checking whether the new row and col are vaild or not
                 if(newrow < 0 || newrow >= stateView.getNumRows() || newcol < 0 
                 || newcol >= stateView.getNumCols()){
                     continue;
