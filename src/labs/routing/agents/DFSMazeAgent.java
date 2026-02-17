@@ -125,6 +125,11 @@ public class DFSMazeAgent
                 //since DFS dont care about weight, we assume it is 1d
                 Path<Coordinate> newPath = new Path<Coordinate>(currentPath, neighbour, 1d);
 
+                //Check whether we have reach the goal for when reaching neighbour 
+                if(neighbour.equals(goal)){
+                    return newPath; //since BFS gives us the shortest once we reach the goal 
+                }
+                
                 stack.push(newPath);
                 visited.add(neighbour);
             }
