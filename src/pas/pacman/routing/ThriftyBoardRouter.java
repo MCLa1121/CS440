@@ -1,9 +1,11 @@
 package src.pas.pacman.routing;
 
 
+import java.net.CookieHandler;
 // SYSTEM IMPORTS
 import java.util.Collection;
-
+import java.util.LinkedList;
+import java.util.PriorityQueue;
 
 // JAVA PROJECT IMPORTS
 import edu.bu.pas.pacman.agents.Agent;
@@ -15,6 +17,7 @@ import edu.bu.pas.pacman.routing.BoardRouter;
 import edu.bu.pas.pacman.routing.BoardRouter.ExtraParams;
 import edu.bu.pas.pacman.utils.Coordinate;
 import edu.bu.pas.pacman.utils.Pair;
+
 
 
 // This class is responsible for calculating routes between two Coordinates on the Map.
@@ -50,6 +53,12 @@ public class ThriftyBoardRouter
                                                        final ExtraParams params)
     {
         // TODO: implement me!
+        //Create a priotity queue 
+        PriorityQueue<Path<Coordinate>> queue = new PriorityQueue<>();
+        //initializating a start path 
+        Path<Coordinate> start = new Path<Coordinate>(src);
+        //current coordinate 
+        Coordinate current = start.current();
         return null;
     }
 
