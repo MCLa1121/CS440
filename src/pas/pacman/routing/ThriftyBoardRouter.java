@@ -32,7 +32,15 @@ public class ThriftyBoardRouter
     public static class BoardExtraParams
         extends ExtraParams
     {
-
+        public int Cost( Coordinate a ,Coordinate b ){
+            int x1 = a.x();
+            int x2 = b.x();
+            int y1 = a.y();
+            int y2 = b.y();
+            int dx = Math.abs(x1 - x2);
+            int dy = Math.abs(y1 - y2);
+            return dx + dy;
+        }
     }
 
     // feel free to add other fields here!
