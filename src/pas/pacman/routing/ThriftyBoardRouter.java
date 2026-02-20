@@ -61,12 +61,9 @@ public class ThriftyBoardRouter
                                                        final ExtraParams params)
     {
         // TODO: implement me!
-        //Create a priotity queue 
-        PriorityQueue<Path<Coordinate>> queue = new PriorityQueue<>();
-        //initializating a start path 
-        Path<Coordinate> start = new Path<Coordinate>(src);
-        //current coordinate 
-        Coordinate current = start.current();
+        //get current coordinate 
+        Coordinate current;
+        
         return null;
     }
 
@@ -76,6 +73,10 @@ public class ThriftyBoardRouter
                                         final GameView game)
     {
         // TODO: implement me!
+        //Create a priotity queue 
+        PriorityQueue<Path<Coordinate>> queue = new PriorityQueue<>();
+        //initializating a start path 
+        Path<Coordinate> start = new Path<Coordinate>(src);
         return null;
     }
 
