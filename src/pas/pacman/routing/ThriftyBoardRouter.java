@@ -33,6 +33,7 @@ public class ThriftyBoardRouter
         extends ExtraParams
     {
         public int Cost( Coordinate a ,Coordinate b ){
+            // hello this is jason
             int x1 = a.x();
             int x2 = b.x();
             int y1 = a.y();
