@@ -89,7 +89,7 @@ public class ThriftyBoardRouter
         if(!moveUP.getState().equals(Tile.State.WALL)){
             neighbour.add(up);
         }
-        
+
         //moving left 
         int L = x - 1;
         Coordinate left = new Coordinate(L, y);
@@ -120,6 +120,11 @@ public class ThriftyBoardRouter
         PriorityQueue<Path<Coordinate>> queue = new PriorityQueue<>();
         //initializating a start path 
         Path<Coordinate> start = new Path<Coordinate>(src);
+        queue.add(start);
+        while(!queue.isEmpty()){
+            Path<Coordinate> current = queue.poll();
+            
+        }
         return null;
     }
 
