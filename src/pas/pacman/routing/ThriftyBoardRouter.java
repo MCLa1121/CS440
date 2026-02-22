@@ -66,13 +66,15 @@ public class ThriftyBoardRouter
     {
         // TODO: implement me!
         //create a collection (data type to be considered)
-        LinkedList<Coordinate> neighbour = new LinkedList <Coordinate>(); 
+        Collection<Coordinate> neighbour = new LinkedList<Coordinate>(); 
         //get current coordinate 
         Coordinate current = src;
         int x = current.x();
         int y = current.y();
+
         //get all the neighbour coordinate 
-        int dx = x + 1; //moving right 
+        //moving right 
+        int dx = x + 1; 
         Coordinate right = new Coordinate(dx, y);
         //checking the tile 
         Tile move = game.getTile(right);
@@ -107,7 +109,7 @@ public class ThriftyBoardRouter
         }
         
         
-        return null;
+        return neighbour;
     }
 
     @Override
@@ -121,8 +123,12 @@ public class ThriftyBoardRouter
         //initializating a start path 
         Path<Coordinate> start = new Path<Coordinate>(src);
         queue.add(start);
+        LinkedList<Coordinate> came_from = new LinkedList<>();
         while(!queue.isEmpty()){
             Path<Coordinate> current = queue.poll();
+            
+           
+            
             
         }
         return null;
