@@ -128,12 +128,16 @@ public class ThriftyBoardRouter
         //get the current estimate cost
         start.setEstimatedPathCostToGoal(Cost(src, tgt));
         //record the best heuristic cost using a hashmap 
-        HashMap<Coordinate, Integer> best = new HashMap<>();
-        best.put(src, 0); 
+        HashMap<Coordinate, Float> best = new HashMap<>();
+        best.put(src, 0.0f); 
         while(!checked.isEmpty()){
             Path<Coordinate> current = checked.poll();
             //general idea
             //get the current coordinate 
+            //find all the cost of the neighbour 
+            //by adding all cost with the heuristic function, find the smallest
+            //update current node to be the parent of the smallest node
+            //add current node to the came_from list, meaning it is fixed
             Coordinate cur = current.getDestination();
 
             //check whether the current coordinate is the target
@@ -144,16 +148,22 @@ public class ThriftyBoardRouter
             float c = current.getTrueCost();
             float currentBest = best.get(cur);
 
-        
             //get and record  all the neighbour of the currnet coordinate 
+            for(Coordinate nbr : getOutgoingNeighbors(src, game, null)){
+                //since each move cost one, each move we add one to the current cost 
+                float Cost = c + 1;
+                //getting the current best cost, which is parent cost 
+                //if we have not seem it before, it should equal to null, vise versa 
+                Float oldCost = best.get(cur);
+                //by comparing the two cost, first check whether we have seen the old cost before 
+                if(oldCost == null || Cost < oldCost){
+                    //if the current cost is less than the oldCost, we update the best map
+                    best.put(nbr, Cost);
 
-            //find all the cost of the neighbour 
+                }
 
-            //by adding all cost with the heuristic function, find the smallest
-
-            //update current node to be the parent of the smallest node
-
-            //add current node to the came_from list, meaning it is fixed
+            }
+            
             
             
         }
