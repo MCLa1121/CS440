@@ -33,7 +33,6 @@ public class ThriftyBoardRouter
         extends ExtraParams
     {
         // this is the estimate function 
-        // hello
         public int Cost( Coordinate a ,Coordinate b ){
             
             int x1 = a.x();
@@ -126,9 +125,20 @@ public class ThriftyBoardRouter
         LinkedList<Coordinate> came_from = new LinkedList<>();
         while(!queue.isEmpty()){
             Path<Coordinate> current = queue.poll();
+            //general idea
+            //get the current coordinate 
+
+            //get and record  all the e=neighbour of the currnet coordinate 
+
+            //find all the cost of the neighbour 
+
+            //by adding all cost with the heuristic function, find the smallest
+
+            //update current node to be the parent of the smallest node
+
+            //add current node to the came_from list, meaning it is fixed
             
            
-            
             
         }
         return null;
