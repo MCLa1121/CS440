@@ -7,6 +7,7 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
+import java.util.HashMap;
 
 // JAVA PROJECT IMPORTS
 import edu.bu.pas.pacman.agents.Agent;
@@ -124,13 +125,27 @@ public class ThriftyBoardRouter
         //initializating a start path 
         Path<Coordinate> start = new Path<Coordinate>(src);
         checked.add(start);
+        //get the current estimate cost
         start.setEstimatedPathCostToGoal(Cost(src, tgt));
+        //record the best heuristic cost using a hashmap 
+        HashMap<Coordinate, Integer> best = new HashMap<>();
+        best.put(src, 0); 
         while(!checked.isEmpty()){
             Path<Coordinate> current = checked.poll();
             //general idea
             //get the current coordinate 
+            Coordinate cur = current.getDestination();
 
-            //get and record  all the e=neighbour of the currnet coordinate 
+            //check whether the current coordinate is the target
+            if(cur == tgt){
+                return current;
+            }
+            //get the true cost of the current path
+            float c = current.getTrueCost();
+            float currentBest = best.get(cur);
+
+        
+            //get and record  all the neighbour of the currnet coordinate 
 
             //find all the cost of the neighbour 
 
