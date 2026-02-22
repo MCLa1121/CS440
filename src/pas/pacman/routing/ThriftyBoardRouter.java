@@ -4,6 +4,7 @@ package src.pas.pacman.routing;
 import java.net.CookieHandler;
 // SYSTEM IMPORTS
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.PriorityQueue;
 
@@ -26,13 +27,7 @@ import edu.bu.pas.pacman.utils.Pair;
 public class ThriftyBoardRouter
     extends BoardRouter
 {
-
-    // If you want to encode other information you think is useful for Coordinate routing
-    // besides Coordinates and data available in GameView you can do so here.
-    public static class BoardExtraParams
-        extends ExtraParams
-    {
-        // this is the estimate function 
+// this is the estimate function 
         public int Cost( Coordinate a ,Coordinate b ){
             
             int x1 = a.x();
@@ -43,6 +38,12 @@ public class ThriftyBoardRouter
             int dy = Math.abs(y1 - y2);
             return dx + dy;
         }
+    // If you want to encode other information you think is useful for Coordinate routing
+    // besides Coordinates and data available in GameView you can do so here.
+    public static class BoardExtraParams
+        extends ExtraParams
+    {
+        
     }
 
     // feel free to add other fields here!
@@ -117,14 +118,15 @@ public class ThriftyBoardRouter
                                         final GameView game)
     {
         // TODO: implement me!
-        //Create a priotity queue 
-        PriorityQueue<Path<Coordinate>> queue = new PriorityQueue<>();
+        //Create a priotity queue with f = g + h 
+        PriorityQueue<Path<Coordinate>> checked = new PriorityQueue<>(Comparator.comparingDouble(p -> p.getTrueCost() + p.getEstimatedPathCostToGoal()));
+        
         //initializating a start path 
         Path<Coordinate> start = new Path<Coordinate>(src);
-        queue.add(start);
-        LinkedList<Coordinate> came_from = new LinkedList<>();
-        while(!queue.isEmpty()){
-            Path<Coordinate> current = queue.poll();
+        checked.add(start);
+        start.setEstimatedPathCostToGoal(Cost(src, tgt));
+        while(!checked.isEmpty()){
+            Path<Coordinate> current = checked.poll();
             //general idea
             //get the current coordinate 
 
@@ -138,7 +140,6 @@ public class ThriftyBoardRouter
 
             //add current node to the came_from list, meaning it is fixed
             
-           
             
         }
         return null;
