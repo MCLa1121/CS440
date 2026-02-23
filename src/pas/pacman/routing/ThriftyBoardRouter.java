@@ -160,11 +160,15 @@ public class ThriftyBoardRouter
                     //if the current cost is less than the oldCost, we update the best map
                     best.put(nbr, Cost);
 
+                    //set the next path, src are the nbr, 1 cost and parent parh os the current path 
+                    Path<Coordinate> next = new Path<Coordinate>(nbr, 1.0f, current);
+                    //set the cost of the neighbour to the goal
+                    next.setEstimatedPathCostToGoal(Cost(nbr,tgt));
+                    //add next to the check list
+                    checked.add(next);
                 }
 
             }
-            
-            
             
         }
         return null;
