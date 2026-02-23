@@ -57,11 +57,15 @@ public class ThriftyPelletRouter
         // get remaining pellets in the game and store all the information to linklist
         LinkedList<Coordinate> current_remaining_pellet = new LinkedList<>(current.getRemainingPelletCoordinates());
 
-        //get all the neighbour coordinate
+        //get all the neighbour coordinate using for loop to iterate over current remaining pellet
+        // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
         for (Coordinate d : current_remaining_pellet) {
+
+            // the removePellet: remove the pellet at d, and move pacman to d, and the current pelletvertex will have the update status
             neighbour.add(current.removePellet(d));
         }
         
+        // After find 
         return neighbour;
 
         // return null;
