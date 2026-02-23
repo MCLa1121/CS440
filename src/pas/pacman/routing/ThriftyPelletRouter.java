@@ -96,11 +96,16 @@ public class ThriftyPelletRouter
         // return 0f;
         Coordinate pacmann_location = src.getPacmanCoordinate();
         LinkedList<Coordinate> current_remaining_pellet = new LinkedList<>(src.getRemainingPelletCoordinates());
+
+        // if the pellet is zero then return Of 
         if (current_remaining_pellet.isEmpty()){
             return 0f;
         }
 
         float min_dis = Float.MAX_VALUE ; 
+
+        // use a for loop to calculate each possibility of the future movement cost, and choose the cost that is 
+        // the minimum and return the minimum distance
         for (Coordinate c: current_remaining_pellet){
             double dx = Math.abs(pacmann_location.x() - c.x());
             double dy = Math.abs(pacmann_location.y() - c.y());
