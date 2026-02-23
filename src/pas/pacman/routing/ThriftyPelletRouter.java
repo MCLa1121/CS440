@@ -52,50 +52,15 @@ public class ThriftyPelletRouter
         Collection<PelletVertex> neighbour = new ArrayList<>(); 
 
         //get current coordinate: create object current that gather info from game 
-        PelletVertex current = new PelletVertex(game);
-
-        // get pacman location
-        Coordinate current_pac_location = current.getPacmanCoordinate();
+        PelletVertex current = src;
 
         // get remaining pellets in the game and store all the information to linklist
         LinkedList<Coordinate> current_remaining_pellet = new LinkedList<>(current.getRemainingPelletCoordinates());
 
-        //get all the neighbour coordinate 
-        //moving right 
-        int dx = x + 1; 
-        Coordinate right = new Coordinate(dx, y);
-        //checking the tile 
-        Tile move = game.getTile(right);
-        //check whether the new tile is wall or not, if it is not a wall
-        //add it in to the list 
-        if(!move.getState().equals(Tile.State.WALL)){
-            neighbour.add(right);
+        //get all the neighbour coordinate
+        for (Coordinate d : current_remaining_pellet) {
+            neighbour.add(current.removePellet(d));
         }
-        
-        //moving uo 
-        int dy = y + 1; 
-        Coordinate up = new Coordinate(x, dy);
-        Tile moveUP = game.getTile(up);
-        if(!moveUP.getState().equals(Tile.State.WALL)){
-            neighbour.add(up);
-        }
-
-        //moving left 
-        int L = x - 1;
-        Coordinate left = new Coordinate(L, y);
-        Tile moveL = game.getTile(left);
-        if(!moveL.getState().equals(Tile.State.WALL)){
-            neighbour.add(left);
-        }
-
-        //moving down 
-        int D = y - 1;
-        Coordinate down = new Coordinate(x, D);
-        Tile moveD = game.getTile(down);
-        if(!moveD.getState().equals(Tile.State.WALL)){
-            neighbour.add(down);
-        }
-        
         
         return neighbour;
 
