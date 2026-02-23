@@ -94,16 +94,29 @@ public class ThriftyPelletRouter
         // TODO: implement me!
         
         // return 0f;
+        // Default: pacmann location and a linklist of current remaining pellet coordinate
         Coordinate pacmann_location = src.getPacmanCoordinate();
         LinkedList<Coordinate> current_remaining_pellet = new LinkedList<>(src.getRemainingPelletCoordinates());
 
-        // if the pellet is zero then return Of 
-        if (current_remaining_pellet.isEmpty()){
-            return 0f;
-        }
+        // --------------------------Avoid Ghost and No Remaining Pellets --------------------------------------
+        // if (current_remaining_pellet.isEmpty()){
+        //     float min_dis = Float.MAX_VALUE ; 
+        //     LinkedList<Coordinate> all_ghost_location = new LinkedList<>(game.);
+        //     // avoid ghost become the first thing to do, else find the pellet and avoid gohst
+        //     for (Coordinate c: all_ghost_location){
+        //         double dx = Math.abs(pacmann_location.x() - c.x());
+        //         double dy = Math.abs(pacmann_location.y() - c.y());
+        //         double distance = dx + dy;
+    
+        //         // store the distance that is smaller
+        //         if (distance < min_dis){
+        //             min_dis = (float) distance;
+        //         }
+        //     } 
+        // }
 
+        // -------------------------- Avoid Ghost and Find Pellet ------------------------------------------------
         float min_dis = Float.MAX_VALUE ; 
-
         // use a for loop to calculate each possibility of the future movement cost, and choose the cost that is 
         // the minimum and return the minimum distance
         for (Coordinate c: current_remaining_pellet){
@@ -111,10 +124,13 @@ public class ThriftyPelletRouter
             double dy = Math.abs(pacmann_location.y() - c.y());
             double distance = dx + dy;
 
+            // store the distance that is smaller
             if (distance < min_dis){
                 min_dis = (float) distance;
             }
         }
+
+        // return the min_dis as float type
         return (float) min_dis;
     }
 
