@@ -65,18 +65,24 @@ public class ThriftyPelletRouter
             neighbour.add(current.removePellet(d));
         }
         
-        // After find 
+        // After we store all the possible case we can eat the pellet, we return it
         return neighbour;
 
         // return null;
     }
 
+    // getEdgeWeight. This method takes two PelletVertex objects that are assumed to be neighbors
+    // and a PelletExtraParams object. This method should decide how expensive the edge weight
+    // is to go from src and arrive at dst. Be careful! Remember that edge weights should be nonnegative, 
+    // and be sure not to break admissibility and consistency of your heuristic!
     @Override
     public float getEdgeWeight(final PelletVertex src,
                                final PelletVertex dst,
                                final ExtraParams params)
-    {
+    {   
         // TODO: implement me!
+        // src and dst is neighbors, and the edge weight is src - dst using distance funtion
+
         return 1f;
     }
 
@@ -86,13 +92,25 @@ public class ThriftyPelletRouter
                               final ExtraParams params)
     {
         // TODO: implement me!
-        // function heuristic(node) =
-        // dx = abs(node.x - goal.x)
-        // dy = abs(node.y - goal.y)
-        // return D * (dx + dy)
+        
+        // return 0f;
+        Coordinate pacmann_location = src.getPacmanCoordinate();
+        LinkedList<Coordinate> current_remaining_pellet = new LinkedList<>(src.getRemainingPelletCoordinates());
+        if (current_remaining_pellet.isEmpty()){
+            return 0f;
+        }
 
+        float min_dis = Float.MAX_VALUE ; 
+        for (Coordinate c: current_remaining_pellet){
+            double dx = Math.abs(pacmann_location.x() - c.x());
+            double dy = Math.abs(pacmann_location.y() - c.y());
+            double distance = dx + dy;
 
-        return 0f;
+            if (distance < min_dis){
+                min_dis = (float) distance;
+            }
+        }
+        return (float) min_dis;
     }
 
     @Override
