@@ -82,8 +82,18 @@ public class ThriftyPelletRouter
     {   
         // TODO: implement me!
         // src and dst is neighbors, and the edge weight is src - dst using distance funtion
+        // Calculate the actual distance between these two specific neighbors
+        Coordinate src_pac = src.getPacmanCoordinate();
+        Coordinate dst_pac = dst.getPacmanCoordinate();
+        double src_x = src_pac.x();
+        double src_y = src_pac.y();
+        double dst_x = dst_pac.x();
+        double dst_y = dst_pac.y();
 
-        return 1f;
+        double weight = Math.hypot(src_x-dst_x, src_y - dst_y); 
+
+        // BE SURE weight is NON NEGATIVE to prevent SO WE WILL NOT MESS UP THE ALGO
+        return (float)Math.max(0f, weight);
     }
 
     @Override
