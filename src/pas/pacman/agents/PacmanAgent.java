@@ -13,9 +13,10 @@ import edu.bu.pas.pacman.routing.PelletRouter;
 import edu.bu.pas.pacman.utils.Coordinate;
 import edu.bu.pas.pacman.utils.Pair;
 
+import java.util.LinkedList;
 import java.util.Random;
 import java.util.Set;
-
+import java.util.Stack;
 
 // JAVA PROJECT IMPORTS
 import src.pas.pacman.routing.ThriftyBoardRouter;  // responsible for how to get somewhere
@@ -63,12 +64,38 @@ public class PacmanAgent
 
         //Check whether there is a path to the pellet
         //if we dont have a path, set the targrt and the plan to null 
+        //method extend from the file (SearchAgent)
         if(pellet == null ){
             this.setPlanToGetToTarget(null);
             this.setTargetCoordinate(null);
+            return; 
         }
-        
-        
+        //Convert pelletPath (backwards) into a forward list of PelletVertex states
+        Stack<PelletVertex> pelletPath = new Stack<>();
+        Path<PelletVertex> p = pellet;
+        while (p != null){
+            //we push the destination to the stack since it is the "start" of the path
+            pelletPath.push(p.getDestination());
+            //update p to its parent, which is the neighbour of the destination
+            p = p.getParentPath();
+        }
+        // If then there are no pellets left, we finish the currnet plan
+        if (pelletPath.size() <= 1){
+            this.setPlanToGetToTarget(null);
+            this.setTargetCoordinate(null);
+            return;
+        }
+        //get the starting pellet state 
+        PelletVertex startState = pelletPath.pop();
+
+        //continue pop to get the next state 
+        PelletVertex nextState = pelletPath.pop();
+
+        //the next pellet coordiante, which is the coordiante of the pacman after we ate the first pellet
+        Coordinate nextPelletCoord = nextState.getPacmanCoordinate();
+        this.setTargetCoordinate(nextPelletCoord);
+
+
     }
 
     @Override
