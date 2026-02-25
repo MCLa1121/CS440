@@ -146,7 +146,7 @@ public class ThriftyBoardRouter
             }
             //get the true cost of the current path
             float c = current.getTrueCost();
-            float currentBest = best.get(cur);
+            //float currentBest = best.get(cur);
 
             //get and record  all the neighbour of the currnet coordinate 
             for(Coordinate nbr : getOutgoingNeighbors(src, game, null)){

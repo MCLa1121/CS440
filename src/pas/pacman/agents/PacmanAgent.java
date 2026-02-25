@@ -124,8 +124,44 @@ public class PacmanAgent
     {
         // This is currently configured to choose a random action
         // TODO: change me!
-        return Action.values()[this.getRandom().nextInt(Action.values().length)];
-    }
+        
+        // current pacman locatio
+        Coordinate curPos = game.getEntity(game.getPacmanId()).getCurrentCoordinate();
+
+        // If no plan or plan finished, compute a new plan
+        if (this.getPlanToGetToTarget() == null || this.getPlanToGetToTarget().isEmpty()){
+            this.makePlan(game);
+        }
+
+        Stack<Coordinate> plan = this.getPlanToGetToTarget();
+
+        // if plan remain null, then we do nothing 
+        if (plan == null || plan.isEmpty()){
+            return null;
+        }
+
+        // if top of plan equals current position, remove it
+        while (!plan.isEmpty() && curPos.equals(plan.peek())){
+            plan.pop();
+        }
+
+        if (plan.isEmpty()){
+            return null;
+        }
+
+        // Next coordinate to move into
+        Coordinate next = plan.pop();
+
+        try{
+            return Action.inferFromCoordinates(curPos, next);
+        }
+        catch (Exception e){
+            // Plan became invalid
+            this.setPlanToGetToTarget(null);
+            return null;
+        }
+            //return Action.values()[this.getRandom().nextInt(Action.values().length)];
+        }
 
     @Override
     public void afterGameEnds(final GameView game)
