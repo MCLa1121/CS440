@@ -5,6 +5,7 @@ import java.util.ArrayList;
 // SYSTEM IMPORTS
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.PriorityQueue;
@@ -155,12 +156,25 @@ public class ThriftyPelletRouter
         PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>( (p1,p2) -> Double.compare(p1.getEstimatedPathCostToGoal(), p2.getEstimatedPathCostToGoal()));
         Map<PelletVertex, Double> gScore = new HashMap<>();
 
+        // set a visitedset so we can fix the outof memory issue
+        HashSet<PelletVertex> visitedSet = new HashSet<>();
+
         openSet.add(new Path<>(start, (float) getHeuristic(start, game, null), null));
         gScore.put(start, 0.0);
 
         while (!openSet.isEmpty()) {
             Path<PelletVertex> currentPath = openSet.poll();
             PelletVertex currenVertex = currentPath.getDestination();
+
+            // if visited we do not recalcuate the path; save memory
+            if (visitedSet.contains(currenVertex)) {
+                continue;
+            }
+
+            // if not visited add to the visied set
+            visitedSet.add(currenVertex);
+
+
             if (currenVertex.getRemainingPelletCoordinates().isEmpty()) {
                 return currentPath;
             }
