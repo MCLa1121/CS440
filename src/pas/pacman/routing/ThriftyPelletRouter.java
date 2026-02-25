@@ -4,7 +4,10 @@ package src.pas.pacman.routing;
 import java.util.ArrayList;
 // SYSTEM IMPORTS
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.LinkedList;
+import java.util.Map;
+import java.util.PriorityQueue;
 
 // JAVA PROJECT IMPORTS
 import edu.bu.pas.pacman.game.Action;
@@ -108,7 +111,7 @@ public class ThriftyPelletRouter
         Coordinate pacmann_location = src.getPacmanCoordinate();
         LinkedList<Coordinate> current_remaining_pellet = new LinkedList<>(src.getRemainingPelletCoordinates());
 
-        // --------------------------Avoid Ghost and No Remaining Pellets --------------------------------------
+        // --------------------------Avoid Ghost and Remaining Pellets --------------------------------------
         // if (current_remaining_pellet.isEmpty()){
         //     float min_dis = Float.MAX_VALUE ; 
         //     LinkedList<Coordinate> all_ghost_location = new LinkedList<>(game.);
@@ -125,7 +128,7 @@ public class ThriftyPelletRouter
         //     } 
         // }
 
-        // -------------------------- Avoid Ghost and Find Pellet ------------------------------------------------
+        // -------------------------- Find Pellet ------------------------------------------------
         float min_dis = Float.MAX_VALUE ; 
         // use a for loop to calculate each possibility of the future movement cost, and choose the cost that is 
         // the minimum and return the minimum distance
@@ -148,19 +151,29 @@ public class ThriftyPelletRouter
     public Path<PelletVertex> graphSearch(final GameView game) 
     {
         // TODO: implement me!
-        // frontier = PriorityQueue()
-        // frontier.put ( start , 0)
-        // came_from = dict()
-        // cost_so_far = dict()
-        // came_from [ start ] = None
-        // cost_so_far [ start ] = 0 while not frontier.empty ():
-        //    current = frontier.get () if current == goal :
-        //       break for next in graph.neighbors( current ):
-        //       new_cost = cost_so_far [ current ] + graph.cost( current , next )
-        //       if next not in cost_so_far or new_cost < cost_so_far [ next ]:
-        //          cost_so_far [ next ] = new_cost 
-        //         priority = new_cost + heuristic( goal , next ) frontier.put ( next , priority)
-        //          came_from [ next ] = current
+        PelletVertex start = new PelletVertex(game);
+        PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>();
+        Path<PelletVertex> p = new Path<>(null);
+        Map<PelletVertex, Double> gScore = new HashMap<>();
+        openSet.add(new Path<>(start, 0, null));
+        gScore.put(start, 0.0);
+
+        while (!openSet.isEmpty()) {
+            Path<PelletVertex> currentPath = openSet.poll();
+            PelletVertex currenVertex = currentPath.getDestination();
+            if (currenVertex.getRemainingPelletCoordinates().isEmpty()) {
+                return currentPath;
+            }
+            
+            for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null)) {
+                double newG = gScore.get(currenVertex) + getEdgeWeight(currenVertex, neighbor, null);
+                if (newG < gScore.getOrDefault(neighbor, 99999.99)) {
+                    gScore.put(neighbor, newG);
+                    double newnewG = newG + getHeuristic(neighbor, game, null);
+                    openSet.add(new Path<>(neighbor, (float)newnewG, currentPath));
+                }
+            }
+        }
         return null;
     }
 
