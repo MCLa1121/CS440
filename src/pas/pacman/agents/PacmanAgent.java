@@ -54,6 +54,21 @@ public class PacmanAgent
         // this.getBoardRouter().graphSearch(...) to get a path and convert it into
         // a Stack of Coordinates (see the documentation for SearchAgent)
         // which your makeMove can do something with!
+        
+        //get the current location 
+        Coordinate current = (game.getEntity(game.getPacmanId())).getCurrentCoordinate();
+        
+        // get the path of the pallet 
+        Path<PelletVertex> pellet = this.getPelletRouter().graphSearch(game);
+
+        //Check whether there is a path to the pellet
+        //if we dont have a path, set the targrt and the plan to null 
+        if(pellet == null ){
+            this.setPlanToGetToTarget(null);
+            this.setTargetCoordinate(null);
+        }
+        
+        
     }
 
     @Override
