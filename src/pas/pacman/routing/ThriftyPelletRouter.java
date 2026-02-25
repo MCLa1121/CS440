@@ -170,7 +170,7 @@ public class ThriftyPelletRouter
                 if (newG < gScore.getOrDefault(neighbor, 99999.99)) {
                     gScore.put(neighbor, newG);
                     double newnewG = newG + getHeuristic(neighbor, game, null);
-                    openSet.add(new Path<>(neighbor, (float)newnewG, currentPath));
+                    openSet.add(new Path<>(neighbor, (float)newG, (float)newnewG, currentPath));
                 }
             }
         }
