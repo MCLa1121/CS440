@@ -95,7 +95,28 @@ public class PacmanAgent
         Coordinate nextPelletCoord = nextState.getPacmanCoordinate();
         this.setTargetCoordinate(nextPelletCoord);
 
+        //now we need to find the path to the next coordinate from the board 
+        Path<Coordinate> boardPath = this.getBoardRouter().graphSearch(current, nextPelletCoord, game);
+       // if there is not path for the next coordiante, we reach to an end 
+        if (boardPath == null) {
+            this.setPlanToGetToTarget(null);
+            return;
+        }
 
+        // Convert the path to a Stack<Coordinate> that pops next move
+        //same logic as the pelletpath
+        Stack<Coordinate> plan = new Stack<>();
+        Path<Coordinate> q = boardPath;
+        while (q != null) {
+            plan.push(q.getDestination());
+            q = q.getParentPath();
+        }
+
+        if (!plan.isEmpty()) {
+            plan.pop();
+        }
+
+        this.setPlanToGetToTarget(plan);
     }
 
     @Override
