@@ -86,7 +86,7 @@ public class PacmanAgent
             return;
         }
         //get the starting pellet state 
-        PelletVertex startState = pelletPath.pop();
+        //PelletVertex startState = pelletPath.pop();
 
         //continue pop to get the next state 
         PelletVertex nextState = pelletPath.pop();
