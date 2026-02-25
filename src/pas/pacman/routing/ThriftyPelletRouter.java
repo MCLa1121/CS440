@@ -135,7 +135,7 @@ public class ThriftyPelletRouter
         // }
 
         // -------------------------- Find Pellet ------------------------------------------------
-        float min_dis = Float.MAX_VALUE ; 
+        float max_dis = 0f ; 
         // use a for loop to calculate each possibility of the future movement cost, and choose the cost that is 
         // the minimum and return the minimum distance
         for (Coordinate c: current_remaining_pellet){
