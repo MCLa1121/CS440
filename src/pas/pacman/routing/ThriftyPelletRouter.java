@@ -152,10 +152,10 @@ public class ThriftyPelletRouter
     {
         // TODO: implement me!
         PelletVertex start = new PelletVertex(game);
-        PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>();
-        Path<PelletVertex> p = new Path<>(null);
+        PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>( (p1,p2) -> Double.compare(p1.getEstimatedPathCostToGoal(), p2.getEstimatedPathCostToGoal()));
         Map<PelletVertex, Double> gScore = new HashMap<>();
-        openSet.add(new Path<>(start, 0, null));
+
+        openSet.add(new Path<>(start, (float) getHeuristic(start, game, null), null));
         gScore.put(start, 0.0);
 
         while (!openSet.isEmpty()) {
@@ -167,7 +167,7 @@ public class ThriftyPelletRouter
             
             for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null)) {
                 double newG = gScore.get(currenVertex) + getEdgeWeight(currenVertex, neighbor, null);
-                if (newG < gScore.getOrDefault(neighbor, 99999.99)) {
+                if (newG < gScore.getOrDefault(neighbor, Double.POSITIVE_INFINITY)) {
                     gScore.put(neighbor, newG);
                     double newnewG = newG + getHeuristic(neighbor, game, null);
                     openSet.add(new Path<>(neighbor, (float)newG, (float)newnewG, currentPath));
