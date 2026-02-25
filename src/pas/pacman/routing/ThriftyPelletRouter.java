@@ -107,10 +107,15 @@ public class ThriftyPelletRouter
     {
         // TODO: implement me!
         
-        // return 0f;
+        // if no pelletes is left, return the cost zero
+        if (src.getRemainingPelletCoordinates().isEmpty()) {
+            return 0f;
+        }
+
+        
         // Default: pacmann location and a linklist of current remaining pellet coordinate
         Coordinate pacmann_location = src.getPacmanCoordinate();
-        LinkedList<Coordinate> current_remaining_pellet = new LinkedList<>(src.getRemainingPelletCoordinates());
+        Collection<Coordinate> current_remaining_pellet = src.getRemainingPelletCoordinates();
 
         // --------------------------Avoid Ghost and Remaining Pellets --------------------------------------
         // if (current_remaining_pellet.isEmpty()){
