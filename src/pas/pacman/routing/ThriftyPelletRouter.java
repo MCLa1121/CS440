@@ -60,9 +60,6 @@ public class ThriftyPelletRouter
         //create a arraylist Note: Data type: Arraylist<PelletVertex>; using Arraylist to store the neighbour
         ArrayList<PelletVertex> neighbour = new ArrayList<>(current_remaining_pellet.size()); 
 
-        // get pacman's loaction
-        Coordinate pacman_location = src.getPacmanCoordinate();
-
         // make a maximum dist it can do
         // final int maximum_can_be = 10;
 
@@ -70,20 +67,14 @@ public class ThriftyPelletRouter
         if (current_remaining_pellet.isEmpty()) {
             return null;
         }
-        Coordinate better_one_is_found = null;
-        float better_dist = Float.MAX_VALUE;
+
         //get all the neighbour coordinate using for loop to iterate over current remaining pellet
         // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
         for (Coordinate pel : current_remaining_pellet) {
-            float dis_calculate = Math.abs(pacman_location.x() - pel.x()) + Math.abs(pacman_location.y() - pel.y());
-            // the removePellet: remove the pellet at d, and move pacman to d, and the current pelletvertex will have the update status
-            if (better_dist > dis_calculate) {
-                better_dist = dis_calculate;
-                better_one_is_found = pel;
-                }
+            neighbour.add(src.removePellet(pel));
             }
         // After we store all the possible case we can eat the pellet, we return it
-        neighbour.add(src.removePellet(better_one_is_found));
+        
         return neighbour;
 
         // return null;
