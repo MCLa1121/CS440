@@ -22,7 +22,7 @@ import edu.bu.pas.pacman.routing.PelletRouter.ExtraParams;
 import edu.bu.pas.pacman.utils.Coordinate;
 import edu.bu.pas.pacman.utils.Pair;
 
-import src.pas.pacman.routing.ThriftyBoardRouter;
+
 
 public class ThriftyPelletRouter
     extends PelletRouter
@@ -61,24 +61,36 @@ public class ThriftyPelletRouter
         Collection<Coordinate> current_remaining_pellet = src.getRemainingPelletCoordinates();
         //create a arraylist Note: Data type: Arraylist<PelletVertex>; using Arraylist to store the neighbour
         ArrayList<PelletVertex> neighbour = new ArrayList<>(current_remaining_pellet.size()); 
-
-        // make a maximum dist it can do
-        // final int maximum_can_be = 10;
+        Coordinate pacman_location = src.getPacmanCoordinate();
 
         // if the current remaing pellet is empty is empty then return null
         if (current_remaining_pellet.isEmpty()) {
             return neighbour;
         }
 
+        // createa an arraylist that use pair to commputing the didance
+        ArrayList<Pair<Float,Coordinate>> distance_List = new ArrayList<>();
+
+
         //get all the neighbour coordinate using for loop to iterate over current remaining pellet
         // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
         for (Coordinate pel : current_remaining_pellet) {
-            neighbour.add(src.removePellet(pel));
+            float distance = Math.abs(pacman_location.x() - pel.x()) + Math.abs(pacman_location.y() - pel.y());
+            distance_List.add(new Pair<>(distance, pel));
             }
         // After we store all the possible case we can eat the pellet, we return it
         
-        return neighbour;
+        distance_List.sort((a,b) -> Float.compare(a.getFirst(), b.getFirst()));
 
+        final int num_of_closest_pellet = 4;
+
+        int limitation= Math.min(num_of_closest_pellet, distance_List.size()); // prune here limit the muber to find pellet 
+
+        for (int i = 0; i < limitation; i++) {
+            Coordinate pel = distance_List.get(i).getSecond();
+            neighbour.add(src.removePellet(pel));
+        }
+        return neighbour;
         // return null;
     }
 
@@ -123,23 +135,6 @@ public class ThriftyPelletRouter
         // Default: pacmann location and a linklist of current remaining pellet coordinate
         Coordinate pacmann_location = src.getPacmanCoordinate();
         Collection<Coordinate> current_remaining_pellet = src.getRemainingPelletCoordinates();
-
-        // --------------------------Avoid Ghost and Remaining Pellets --------------------------------------
-        // if (current_remaining_pellet.isEmpty()){
-        //     float min_dis = Float.MAX_VALUE ; 
-        //     LinkedList<Coordinate> all_ghost_location = new LinkedList<>(game.);
-        //     // avoid ghost become the first thing to do, else find the pellet and avoid gohst
-        //     for (Coordinate c: all_ghost_location){
-        //         double dx = Math.abs(pacmann_location.x() - c.x());
-        //         double dy = Math.abs(pacmann_location.y() - c.y());
-        //         double distance = dx + dy;
-    
-        //         // store the distance that is smaller
-        //         if (distance < min_dis){
-        //             min_dis = (float) distance;
-        //         }
-        //     } 
-        // }
 
         // -------------------------- Find Pellet ------------------------------------------------
         float max_dis = 0f ; 
