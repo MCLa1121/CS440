@@ -114,12 +114,12 @@ public class ThriftyBoardRouter
             //float currentBest = best.get(cur);
 
             //get and record  all the neighbour of the currnet coordinate 
-            for(Coordinate nbr : getOutgoingNeighbors(src, game, null)){
+            for(Coordinate nbr : getOutgoingNeighbors(cur, game, null)){
                 //since each move cost one, each move we add one to the current cost 
                 float Cost = c + 1;
                 //getting the current best cost, which is parent cost 
                 //if we have not seem it before, it should equal to null, vise versa 
-                Float oldCost = best.get(cur);
+                Float oldCost = best.get(nbr);
                 //by comparing the two cost, first check whether we have seen the old cost before 
                 if(oldCost == null || Cost < oldCost){
                     //if the current cost is less than the oldCost, we update the best map
