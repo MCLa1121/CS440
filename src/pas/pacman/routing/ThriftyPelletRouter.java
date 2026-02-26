@@ -177,8 +177,9 @@ public class ThriftyPelletRouter
 
         // set a visitedset so we can fix the outof memory issue
         HashSet<PelletVertex> visitedSet = new HashSet<>();
-
-        openSet.add(new Path<>(start, (float) getHeuristic(start, game, null), null));
+        Path<PelletVertex> beginning_path = new Path<>(start);
+        beginning_path.setEstimatedPathCostToGoal(getHeuristic(start, game, null));
+        openSet.add(beginning_path);
         gScore.put(start, 0.0);
 
         while (!openSet.isEmpty()) {
@@ -202,8 +203,9 @@ public class ThriftyPelletRouter
                 double newG = gScore.get(currenVertex) + getEdgeWeight(currenVertex, neighbor, null);
                 if (newG < gScore.getOrDefault(neighbor, Double.POSITIVE_INFINITY)) {
                     gScore.put(neighbor, newG);
-                    double newnewG = newG + getHeuristic(neighbor, game, null);
-                    openSet.add(new Path<>(neighbor, (float)newG, (float)newnewG, currentPath));
+                    Path<PelletVertex> next_path = new Path<>(neighbor,getEdgeWeight(currenVertex, neighbor, null), currentPath);
+                    next_path.setEstimatedPathCostToGoal(getHeuristic(neighbor, game, null));
+                    openSet.add(next_path);
                 }
             }
         }
