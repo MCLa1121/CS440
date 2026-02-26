@@ -171,7 +171,7 @@ public class ThriftyPelletRouter
         // set a visitedset so we can fix the outof memory issue
         HashSet<String> visitedSet = new HashSet<>();
         Path<PelletVertex> beginning_path = new Path<>(start);
-        ThriftyBoardRouter borad_Router = new ThriftyBoardRouter(this.getMyUnidId(), this.getPacmanId(), this.getGhostChaseRadius())
+        ThriftyBoardRouter borad_Router = new ThriftyBoardRouter(this.getMyUnidId(), this.getPacmanId(), this.getGhostChaseRadius());
         beginning_path.setEstimatedPathCostToGoal(getHeuristic(start, game, null));
         openSet.add(beginning_path);
         String start_Key = start.getPacmanCoordinate().toString() + "|" + start.getRemainingPelletCoordinates().toString();
