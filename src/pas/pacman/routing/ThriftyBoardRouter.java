@@ -2,6 +2,7 @@ package src.pas.pacman.routing;
 
 
 import java.net.CookieHandler;
+import java.util.ArrayList;
 // SYSTEM IMPORTS
 import java.util.Collection;
 import java.util.Comparator;
@@ -67,7 +68,7 @@ public class ThriftyBoardRouter
     {
         // TODO: implement me!
         //create a collection (data type to be considered)
-        Collection<Coordinate> neighbour = new LinkedList<Coordinate>(); 
+        Collection<Coordinate> neighbour = new ArrayList<Coordinate>(); 
         //get current coordinate 
         Coordinate current = src;
         int x = current.x();
@@ -141,7 +142,7 @@ public class ThriftyBoardRouter
             Coordinate cur = current.getDestination();
 
             //check whether the current coordinate is the target
-            if(cur == tgt){
+            if(cur.equals(tgt)){
                 return current;
             }
             //get the true cost of the current path
