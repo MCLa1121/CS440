@@ -139,18 +139,18 @@ public class ThriftyPelletRouter
         // use a for loop to calculate each possibility of the future movement cost, and choose the cost that is 
         // the minimum and return the minimum distance
         for (Coordinate c: current_remaining_pellet){
-            double dx = Math.abs(pacmann_location.x() - c.x());
-            double dy = Math.abs(pacmann_location.y() - c.y());
-            double distance = dx + dy;
+            float dx = Math.abs(pacmann_location.x() - c.x());
+            float dy = Math.abs(pacmann_location.y() - c.y());
+            float distance = dx + dy;
 
             // store the distance that is smaller
-            if (distance < min_dis){
-                min_dis = (float) distance;
+            if (distance > max_dis){
+                max_dis = distance;
             }
         }
 
         // return the min_dis as float type
-        return (float) min_dis;
+        return max_dis;
     }
 
     @Override
