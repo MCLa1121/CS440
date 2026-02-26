@@ -134,31 +134,12 @@ public class ThriftyPelletRouter
         // Default: pacmann location and a linklist of current remaining pellet coordinate
         Coordinate pacmann_location = src.getPacmanCoordinate();
         
-        ArrayList<Coordinate> pellet_reamain_list = new ArrayList<>(current_remaining_pellet);
-        if (pellet_reamain_list.size() == 1) {
-            Coordinate pac_other = pellet_reamain_list.get(0);
-            return Math.abs(pacmann_location.x() - pac_other.x()) + Math.abs(pacmann_location.y() - pac_other.y());
-        }
-
-        float max_dis_pellet = 0f;
-        for (int i = 0; i < pellet_reamain_list.size(); i++) {
-            for (int j = i + 1; j < pellet_reamain_list.size(); j++) {
-                Coordinate p1 = pellet_reamain_list.get(i);
-                Coordinate p2 = pellet_reamain_list.get(j);
-                float distacne_max = Math.abs(p1.x() - p2.x()) + Math.abs(p1.y() - p2.y());
-                if (distacne_max > max_dis_pellet) {
-                    max_dis_pellet = distacne_max;
-                }
-            }
-        }
-
-
         float min_dist_pellet = Float.MAX_VALUE ; 
         // use a for loop to calculate each possibility of the future movement cost, and choose the cost that is 
         // the minimum and return the minimum distance
-        for (Coordinate c: pellet_reamain_list){
-            float dx = Math.abs(pacmann_location.x() - c.x());
-            float dy = Math.abs(pacmann_location.y() - c.y());
+        for (Coordinate pel: current_remaining_pellet){
+            float dx = Math.abs(pacmann_location.x() - pel.x());
+            float dy = Math.abs(pacmann_location.y() - pel.y());
             float distance = dx + dy;
 
             // store the distance that is smaller
@@ -168,7 +149,7 @@ public class ThriftyPelletRouter
         }
 
         // return the min_dis as float type
-        return max_dis_pellet + min_dist_pellet;
+        return min_dist_pellet;
     }
 
 
