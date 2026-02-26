@@ -1,10 +1,9 @@
 package src.pas.pacman.routing;
 
-import static org.junit.Assert.fail;
-
 import java.util.ArrayList;
 // SYSTEM IMPORTS
 import java.util.Collection;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -61,34 +60,15 @@ public class ThriftyPelletRouter
         // get remaining pellets in the game and store all the information to collection
         Collection<Coordinate> current_remaining_pellet = src.getRemainingPelletCoordinates();
         //create a arraylist Note: Data type: Arraylist<PelletVertex>; using Arraylist to store the neighbour
-        ArrayList<PelletVertex> neighbour = new ArrayList<>(current_remaining_pellet.size()); 
+        ArrayList<Coordinate> pellet_arr_list = new ArrayList<>(current_remaining_pellet); 
         Coordinate pacman_location = src.getPacmanCoordinate();
 
-        // if the current remaing pellet is empty is empty then return null
-        if (current_remaining_pellet.isEmpty()) {
-            return neighbour;
-        }
-
-        // createa an arraylist that use pair to commputing the didance
-        ArrayList<Pair<Float,Coordinate>> distance_List = new ArrayList<>();
-
-
+        pellet_arr_list.sort(Comparator.comparingInt(p -> Math.abs(pacman_location.x() - p.x()) + Math.abs(pacman_location.y() - p.y())));
+        
+        ArrayList<PelletVertex> neighbour = new ArrayList<>(pellet_arr_list.size());
         //get all the neighbour coordinate using for loop to iterate over current remaining pellet
         // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
-        for (Coordinate pel : current_remaining_pellet) {
-            float distance = Math.abs(pacman_location.x() - pel.x()) + Math.abs(pacman_location.y() - pel.y());
-            distance_List.add(new Pair<>(distance, pel));
-            }
-        // After we store all the possible case we can eat the pellet, we return it
-        
-        distance_List.sort((a,b) -> Float.compare(a.getFirst(), b.getFirst()));
-
-        final int num_of_closest_pellet = 4;
-
-        int limitation= Math.min(num_of_closest_pellet, distance_List.size()); // prune here limit the muber to find pellet 
-
-        for (int i = 0; i < limitation; i++) {
-            Coordinate pel = distance_List.get(i).getSecond();
+        for (Coordinate pel : pellet_arr_list) {
             neighbour.add(src.removePellet(pel));
         }
         return neighbour;
@@ -171,7 +151,7 @@ public class ThriftyPelletRouter
             Path<PelletVertex> currentPath = openSet.poll();
             PelletVertex currenVertex = currentPath.getDestination();
 
-            double best_g = gScore.getOrDefault(currenVertex, Float.POSITIVE_INFINITY);
+            float best_g = gScore.getOrDefault(currenVertex, Float.POSITIVE_INFINITY);
             if (currentPath.getTrueCost() > best_g) {
                 continue;
             }
