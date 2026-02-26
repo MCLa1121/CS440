@@ -69,48 +69,12 @@ public class ThriftyBoardRouter
         // TODO: implement me!
         //create a collection (data type to be considered)
         Collection<Coordinate> neighbour = new ArrayList<Coordinate>(); 
-        //get current coordinate 
-        Coordinate current = src;
-        int x = current.x();
-        int y = current.y();
-
-        //get all the neighbour coordinate 
-        //moving right 
-        int dx = x + 1; 
-        Coordinate right = new Coordinate(dx, y);
-        //checking the tile 
-        Tile move = game.getTile(right);
-        //check whether the new tile is wall or not, if it is not a wall
-        //add it in to the list 
-        if(!move.getState().equals(Tile.State.WALL)){
-            neighbour.add(right);
+        for (Action action : Action.values()){
+            if (game.isLegalPacmanMove(src, action)){
+                Coordinate next = action.apply(src);
+                neighbour.add(next);
+            }
         }
-        
-        //moving uo 
-        int dy = y + 1; 
-        Coordinate up = new Coordinate(x, dy);
-        Tile moveUP = game.getTile(up);
-        if(!moveUP.getState().equals(Tile.State.WALL)){
-            neighbour.add(up);
-        }
-
-        //moving left 
-        int L = x - 1;
-        Coordinate left = new Coordinate(L, y);
-        Tile moveL = game.getTile(left);
-        if(!moveL.getState().equals(Tile.State.WALL)){
-            neighbour.add(left);
-        }
-
-        //moving down 
-        int D = y - 1;
-        Coordinate down = new Coordinate(x, D);
-        Tile moveD = game.getTile(down);
-        if(!moveD.getState().equals(Tile.State.WALL)){
-            neighbour.add(down);
-        }
-        
-        
         return neighbour;
     }
 
