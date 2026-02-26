@@ -52,21 +52,20 @@ public class ThriftyPelletRouter
                                                          final ExtraParams params)
     {
         // TODO: implement me!
-        //create a collection Note: Data type: Collection<PelletVertex>; using Arraylist to store the neighbour
-        Collection<PelletVertex> neighbour = new ArrayList<>(); 
 
-        //get current coordinate: create object current that gather info from game 
-        PelletVertex current = src;
 
-        // get remaining pellets in the game and store all the information to linklist
-        LinkedList<Coordinate> current_remaining_pellet = new LinkedList<>(current.getRemainingPelletCoordinates());
+
+        // get remaining pellets in the game and store all the information to collection
+        Collection<Coordinate> current_remaining_pellet = src.getRemainingPelletCoordinates();
+        //create a arraylist Note: Data type: Arraylist<PelletVertex>; using Arraylist to store the neighbour
+        ArrayList<PelletVertex> neighbour = new ArrayList<>(current_remaining_pellet.size()); 
 
         //get all the neighbour coordinate using for loop to iterate over current remaining pellet
         // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
-        for (Coordinate d : current_remaining_pellet) {
+        for (Coordinate pel : current_remaining_pellet) {
 
             // the removePellet: remove the pellet at d, and move pacman to d, and the current pelletvertex will have the update status
-            neighbour.add(current.removePellet(d));
+            neighbour.add(src.removePellet(pel));
         }
         
         // After we store all the possible case we can eat the pellet, we return it
