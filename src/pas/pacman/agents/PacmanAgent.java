@@ -59,6 +59,30 @@ public class PacmanAgent
         //get the current location 
         Coordinate current = (game.getEntity(game.getPacmanId())).getCurrentCoordinate();
         
+        //get the target locatoin 
+        Coordinate target = this.getTargetCoordinate();
+        //check whether the target is set or not, if it is, then we plan it 
+        if (target != null){
+            Path<Coordinate> boardPath = this.getBoardRouter().graphSearch(current, target, game);
+            if (boardPath == null){
+                this.setPlanToGetToTarget(null);
+                return;
+            }        
+            // Convert the path to a Stack<Coordinate> that pops next move
+            //same logic as the pelletpath
+            Stack<Coordinate> plan = new Stack<>();
+            Path<Coordinate> q = boardPath;
+            while (q != null) {
+                plan.push(q.getDestination());
+                q = q.getParentPath();
+            }
+
+            if (!plan.isEmpty()) {
+                plan.pop();
+            }
+        this.setPlanToGetToTarget(plan);
+        return;
+    }
         // get the path of the pallet 
         Path<PelletVertex> pellet = this.getPelletRouter().graphSearch(game);
 
@@ -102,22 +126,20 @@ public class PacmanAgent
             this.setPlanToGetToTarget(null);
             return;
         }
-
-        // Convert the path to a Stack<Coordinate> that pops next move
-        //same logic as the pelletpath
         Stack<Coordinate> plan = new Stack<>();
-        Path<Coordinate> q = boardPath;
-        while (q != null) {
-            plan.push(q.getDestination());
-            q = q.getParentPath();
+        Path<Coordinate> r = boardPath;
+        while (r != null){
+            plan.push(r.getDestination());
+            r = r.getParentPath();
         }
 
-        if (!plan.isEmpty()) {
-            plan.pop();
-        }
-
+        if (!plan.isEmpty()){
+           plan.pop(); 
+        } 
         this.setPlanToGetToTarget(plan);
     }
+
+
 
     @Override
     public Action makeMove(final GameView game)
