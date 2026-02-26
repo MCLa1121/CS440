@@ -21,6 +21,7 @@ import edu.bu.pas.pacman.routing.PelletRouter.ExtraParams;
 import edu.bu.pas.pacman.utils.Coordinate;
 import edu.bu.pas.pacman.utils.Pair;
 
+import src.pas.pacman.routing.ThriftyBoardRouter;
 
 public class ThriftyPelletRouter
     extends PelletRouter
@@ -162,28 +163,31 @@ public class ThriftyPelletRouter
     public Path<PelletVertex> graphSearch(final GameView game) 
     {
         // TODO: implement me!
+        
         PelletVertex start = new PelletVertex(game);
         PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>( (p1,p2) -> Float.compare(p1.getTrueCost() + p1.getEstimatedPathCostToGoal(), p2.getTrueCost() + p2.getEstimatedPathCostToGoal()));
-        Map<PelletVertex, Double> gScore = new HashMap<>();
+        Map<String, Double> gScore = new HashMap<>();
 
         // set a visitedset so we can fix the outof memory issue
-        HashSet<PelletVertex> visitedSet = new HashSet<>();
+        HashSet<String> visitedSet = new HashSet<>();
         Path<PelletVertex> beginning_path = new Path<>(start);
+        ThriftyBoardRouter borad_Router = new ThriftyBoardRouter(this.getMyUnidId(), this.getPacmanId(), this.getGhostChaseRadius())
         beginning_path.setEstimatedPathCostToGoal(getHeuristic(start, game, null));
         openSet.add(beginning_path);
-        gScore.put(start, 0.0);
+        String start_Key = start.getPacmanCoordinate().toString() + "|" + start.getRemainingPelletCoordinates().toString();
+        gScore.put(start_Key, 0.0);
 
         while (!openSet.isEmpty()) {
             Path<PelletVertex> currentPath = openSet.poll();
             PelletVertex currenVertex = currentPath.getDestination();
-
+            String current_Key = currenVertex.getPacmanCoordinate().toString() + "|" + currenVertex.getRemainingPelletCoordinates().toString();
             // if visited we do not recalcuate the path; save memory
-            if (visitedSet.contains(currenVertex)) {
+            if (visitedSet.contains(current_Key)) {
                 continue;
             }
 
             // if not visited add to the visied set
-            visitedSet.add(currenVertex);
+            visitedSet.add(current_Key);
 
 
             if (currenVertex.getRemainingPelletCoordinates().isEmpty()) {
@@ -191,10 +195,18 @@ public class ThriftyPelletRouter
             }
             
             for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null)) {
-                double newG = gScore.get(currenVertex) + getEdgeWeight(currenVertex, neighbor, null);
-                if (newG < gScore.getOrDefault(neighbor, Double.POSITIVE_INFINITY)) {
-                    gScore.put(neighbor, newG);
-                    Path<PelletVertex> next_path = new Path<>(neighbor,getEdgeWeight(currenVertex, neighbor, null), currentPath);
+                Path<Coordinate> board_Path = borad_Router.graphSearch(currenVertex.getPacmanCoordinate(), neighbor.getPacmanCoordinate(), game);
+
+                if (board_Path == null) {
+                    continue;
+                }
+                float true_edge_cost = board_Path.getTrueCost();
+                String neighbour_Key = neighbor.getPacmanCoordinate().toString() + "|" + neighbor.getRemainingPelletCoordinates().toString();
+                double current_G = gScore.getOrDefault(current_Key, Double.POSITIVE_INFINITY);
+                double newG = current_G + true_edge_cost;
+                if (newG < gScore.getOrDefault(neighbour_Key, Double.POSITIVE_INFINITY)) {
+                    gScore.put(neighbour_Key, newG);
+                    Path<PelletVertex> next_path = new Path<>(neighbor,true_edge_cost, currentPath);
                     next_path.setEstimatedPathCostToGoal(getHeuristic(neighbor, game, null));
                     openSet.add(next_path);
                 }
