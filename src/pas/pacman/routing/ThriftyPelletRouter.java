@@ -65,7 +65,7 @@ public class ThriftyPelletRouter
 
         // if the current remaing pellet is empty is empty then return null
         if (current_remaining_pellet.isEmpty()) {
-            return null;
+            return neighbour;
         }
 
         //get all the neighbour coordinate using for loop to iterate over current remaining pellet
