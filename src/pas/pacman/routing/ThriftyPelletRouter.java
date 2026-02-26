@@ -172,7 +172,7 @@ public class ThriftyPelletRouter
     {
         // TODO: implement me!
         PelletVertex start = new PelletVertex(game);
-        PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>( (p1,p2) -> Double.compare(p1.getEstimatedPathCostToGoal(), p2.getEstimatedPathCostToGoal()));
+        PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>( (p1,p2) -> Float.compare(p1.getTrueCost() + p1.getEstimatedPathCostToGoal(), p2.getTrueCost() + p2.getEstimatedPathCostToGoal()));
         Map<PelletVertex, Double> gScore = new HashMap<>();
 
         // set a visitedset so we can fix the outof memory issue
