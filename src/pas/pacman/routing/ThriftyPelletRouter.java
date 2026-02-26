@@ -68,23 +68,22 @@ public class ThriftyPelletRouter
 
         // if the neighbor is not empty then pick the pellet that near the most
         if (neighbour.isEmpty()) {
-            Coordinate better_one_is_found = null;
-            float better_dist = Float.MAX_VALUE;
-            //get all the neighbour coordinate using for loop to iterate over current remaining pellet
-            // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
-            for (Coordinate pel : current_remaining_pellet) {
-                float dis_calculate = Math.abs(pacman_location.x() - pel.x()) + Math.abs(pacman_location.y() - pel.y());
-                // the removePellet: remove the pellet at d, and move pacman to d, and the current pelletvertex will have the update status
-                if (better_dist > dis_calculate) {
-                    better_dist = dis_calculate;
-                    better_one_is_found = pel;
-                }
-                if (better_one_is_found != null) {
-                    neighbour.add(src.removePellet(pel));
+            return neighbour;
+        }
+        Coordinate better_one_is_found = null;
+        float better_dist = Float.MAX_VALUE;
+        //get all the neighbour coordinate using for loop to iterate over current remaining pellet
+        // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
+        for (Coordinate pel : current_remaining_pellet) {
+            float dis_calculate = Math.abs(pacman_location.x() - pel.x()) + Math.abs(pacman_location.y() - pel.y());
+            // the removePellet: remove the pellet at d, and move pacman to d, and the current pelletvertex will have the update status
+            if (better_dist > dis_calculate) {
+                better_dist = dis_calculate;
+                better_one_is_found = pel;
                 }
             }
-        }
         // After we store all the possible case we can eat the pellet, we return it
+        neighbour.add(src.removePellet(better_one_is_found));
         return neighbour;
 
         // return null;
