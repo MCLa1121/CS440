@@ -65,11 +65,14 @@ public class ThriftyPelletRouter
 
         pellet_arr_list.sort(Comparator.comparingInt(p -> Math.abs(pacman_location.x() - p.x()) + Math.abs(pacman_location.y() - p.y())));
         
-        ArrayList<PelletVertex> neighbour = new ArrayList<>(pellet_arr_list.size());
+        final int set_limit = 4;
+        int limit_size = Math.min(set_limit, pellet_arr_list.size()); // pruning for 4 best pellets
+
+        ArrayList<PelletVertex> neighbour = new ArrayList<>(limit_size);
         //get all the neighbour coordinate using for loop to iterate over current remaining pellet
         // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
-        for (Coordinate pel : pellet_arr_list) {
-            neighbour.add(src.removePellet(pel));
+        for (int i = 0; i < limit_size; i++) {
+            neighbour.add(src.removePellet(pellet_arr_list.get(i)));
         }
         return neighbour;
         // return null;
@@ -163,7 +166,7 @@ public class ThriftyPelletRouter
             for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null))
             {
                 float lower_bound_weight = getEdgeWeight(currenVertex, neighbor, null);
-                float newG = currentPath.getTrueCost() + lower_bound_weight;
+                float newG = best_g + lower_bound_weight;
 
                 if (newG < gScore.getOrDefault(neighbor, Float.POSITIVE_INFINITY))
                 {
