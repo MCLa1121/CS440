@@ -66,9 +66,9 @@ public class ThriftyPelletRouter
         // make a maximum dist it can do
         // final int maximum_can_be = 10;
 
-        // if the neighbor is not empty then pick the pellet that near the most
-        if (neighbour.isEmpty()) {
-            return neighbour;
+        // if the current remaing pellet is empty is empty then return null
+        if (current_remaining_pellet.isEmpty()) {
+            return null;
         }
         Coordinate better_one_is_found = null;
         float better_dist = Float.MAX_VALUE;
