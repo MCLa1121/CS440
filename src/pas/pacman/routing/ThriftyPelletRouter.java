@@ -205,9 +205,9 @@ public class ThriftyPelletRouter
 
                 for (Action a : Action.values()) {
                     if (!game.isLegalPacmanMove(cur, a)) continue;
-
                     Coordinate nxt = a.apply(cur);
-                    if (nxt.equals(cur)) continue; // filters STOP/no-op
+                    if (nxt.equals(cur)) continue; 
+
                     int nxtIdx = nxt.y() * max_X + nxt.x();
                     if (nxtIdx != -1) continue;
 
@@ -215,14 +215,14 @@ public class ThriftyPelletRouter
                     q.add(nxt);
                 }
             }
-            bfsCache.put(key, dist);
+            bfs_memo.put(key, dist);
 
         }
             for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null))
             {
                 
                 Coordinate goal_c = neighbor.getPacmanCoordinate();
-                int bfs_dis = dist[goal_c.y()][goal_c.x()];
+                int bfs_dis = dist[goal_c.y() * max_X + goal_c.x()];
                 if (bfs_dis == -1) continue; // unreachable
                 float lower_bound_weight = (float) bfs_dis;
                 float newG = best_g + lower_bound_weight;

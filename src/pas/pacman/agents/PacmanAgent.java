@@ -61,6 +61,13 @@ public class PacmanAgent
         
         //get the target locatoin 
         Coordinate target = this.getTargetCoordinate();
+
+        //if we reach a target, we make it null so we can find the next one 
+        if (target != null && current.equals(target)) {
+            this.setTargetCoordinate(null);
+            target = null;
+        }
+        
         //check whether the target is set or not, if it is, then we plan it 
         if (target != null){
             Path<Coordinate> boardPath = this.getBoardRouter().graphSearch(current, target, game);
@@ -104,13 +111,13 @@ public class PacmanAgent
             p = p.getParentPath();
         }
         // If then there are no pellets left, we finish the currnet plan
-        if (pelletPath.size() <= 1){
+        if (pelletPath.size() < 2){
             this.setPlanToGetToTarget(null);
             this.setTargetCoordinate(null);
             return;
         }
-        //get the starting pellet state 
-        //PelletVertex startState = pelletPath.pop();
+        //get the starting pellet state, we need to pop it first so we can get the nextstate 
+        PelletVertex startState = pelletPath.pop();
 
         //continue pop to get the next state 
         PelletVertex nextState = pelletPath.pop();
@@ -159,7 +166,7 @@ public class PacmanAgent
 
         // if plan remain null, then we do nothing 
         if (plan == null || plan.isEmpty()){
-            return null;
+            return Action.values()[this.getRandom().nextInt(Action.values().length)];
         }
 
         // if top of plan equals current position, remove it
@@ -168,7 +175,7 @@ public class PacmanAgent
         }
 
         if (plan.isEmpty()){
-            return null;
+            return Action.values()[this.getRandom().nextInt(Action.values().length)];
         }
 
         // Next coordinate to move into
@@ -180,7 +187,7 @@ public class PacmanAgent
         catch (Exception e){
             // Plan became invalid
             this.setPlanToGetToTarget(null);
-            return null;
+            return Action.values()[this.getRandom().nextInt(Action.values().length)];
         }
             //return Action.values()[this.getRandom().nextInt(Action.values().length)];
         }
