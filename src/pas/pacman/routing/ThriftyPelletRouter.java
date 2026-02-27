@@ -132,30 +132,35 @@ public class ThriftyPelletRouter
                               final ExtraParams params)
     {
         // TODO: implement me!
+        // create collection coordtinate to store the coordiantes of remaing pellet current have (which mean have not eat the pellet yet)
         Collection<Coordinate> current_remaining_pellet = src.getRemainingPelletCoordinates();
-        // if no pelletes is left, return the cost zero
+
+        // if no pelletes is left, return the cost zero; because we reach our goal to eat all the pellet
         if (current_remaining_pellet.isEmpty()) {
             return 0f;
         }
 
-        // Default: pacmann location and a linklist of current remaining pellet coordinate
+        // store current pacmann location from src.getPacmanCoordinate
         Coordinate pacmann_location = src.getPacmanCoordinate();
         
+        // we set the min dist pellet to folat max value (so if there is a smaller exist will be replaced eaily)
         float min_dist_pellet = Float.MAX_VALUE ; 
-        // use a for loop to calculate each possibility of the future movement cost, and choose the cost that is 
-        // the minimum and return the minimum distance
+
+        // use a for loop to iterate each reaming pellet and we calculate the distance with pacman
         for (Coordinate pel: current_remaining_pellet){
             float dx = Math.abs(pacmann_location.x() - pel.x());
             float dy = Math.abs(pacmann_location.y() - pel.y());
             float distance = dx + dy;
 
-            // store the distance that is smaller
+            // store the distance that is smallest(the closest to pacman)
             if (distance < min_dist_pellet){
+
+                // we store the smallest dist to minimum distance pellet (the closest pellet to pacman)
                 min_dist_pellet = distance;
             }
         }
 
-        // return the min_dis as float type
+        // return the distance of the closest pellet (whcih we can avoid over value the heristic value)
         return min_dist_pellet;
     }
 
