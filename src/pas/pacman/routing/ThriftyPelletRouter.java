@@ -65,7 +65,7 @@ public class ThriftyPelletRouter
 
         pellet_arr_list.sort(Comparator.comparingInt(p -> Math.abs(pacman_location.x() - p.x()) + Math.abs(pacman_location.y() - p.y())));
         
-        final int prune_requirment = 10; // if too small , we do not prune;
+        final int prune_requirment = 12; // if too small , we do not prune;
         final int set_limit = 4;
         int limit_size = pellet_arr_list.size();
         if (pellet_arr_list.size() > prune_requirment) {
@@ -178,10 +178,43 @@ public class ThriftyPelletRouter
             if (currenVertex.getRemainingPelletCoordinates().size() <= Pellet_Remain) {
                 return currentPath;
             }
+            Coordinate start_c = currenVertex.getPacmanCoordinate();
+            int max_X = game.getXBoardDimension();
+            int max_Y = game.getYBoardDimension();
 
+            int[][] dist = new int[max_Y][max_X];
+            for (int i = 0; i < max_Y; i++) {
+                for (int j = 0; j < max_X; j++) dist[i][j] = -1;
+            }
+
+            LinkedList<Coordinate> q = new LinkedList<>();
+            dist[start_c.y()][start_c.x()] = 0;
+            q.add(start_c);
+
+            // full BFS from start_c to all reachable cells
+            while (!q.isEmpty()) {
+                Coordinate cur = q.removeFirst();
+                int curD = dist[cur.y()][cur.x()];
+
+                for (Action a : Action.values()) {
+                    if (!game.isLegalPacmanMove(cur, a)) continue;
+
+                    Coordinate nxt = a.apply(cur);
+                    if (nxt.equals(cur)) continue; // filters STOP/no-op
+
+                    if (dist[nxt.y()][nxt.x()] != -1) continue;
+
+                    dist[nxt.y()][nxt.x()] = curD + 1;
+                    q.add(nxt);
+                }
+            }
             for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null))
             {
-                float lower_bound_weight = getEdgeWeight(currenVertex, neighbor, null);
+                
+                Coordinate goal_c = neighbor.getPacmanCoordinate();
+                int bfs_dis = dist[goal_c.y()][goal_c.x()];
+                if (bfs_dis == -1) continue; // unreachable
+                float lower_bound_weight = (float) bfs_dis;
                 float newG = best_g + lower_bound_weight;
 
                 if (newG < gScore.getOrDefault(neighbor, Float.POSITIVE_INFINITY))
