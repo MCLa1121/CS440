@@ -65,9 +65,12 @@ public class ThriftyPelletRouter
 
         pellet_arr_list.sort(Comparator.comparingInt(p -> Math.abs(pacman_location.x() - p.x()) + Math.abs(pacman_location.y() - p.y())));
         
+        final int prune_requirment = 10; // if too small , we do not prune;
         final int set_limit = 4;
-        int limit_size = Math.min(set_limit, pellet_arr_list.size()); // pruning for 4 best pellets
-
+        int limit_size = pellet_arr_list.size();
+        if (pellet_arr_list.size() > prune_requirment) {
+            limit_size = Math.min(set_limit, pellet_arr_list.size()); // pruning for 4 best pellets
+        }
         ArrayList<PelletVertex> neighbour = new ArrayList<>(limit_size);
         //get all the neighbour coordinate using for loop to iterate over current remaining pellet
         // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
