@@ -104,13 +104,13 @@ public class PacmanAgent
             p = p.getParentPath();
         }
         // If then there are no pellets left, we finish the currnet plan
-        if (pelletPath.size() <= 1){
+        if (pelletPath.size() <= 2){
             this.setPlanToGetToTarget(null);
             this.setTargetCoordinate(null);
             return;
         }
-        //get the starting pellet state 
-        //PelletVertex startState = pelletPath.pop();
+        //get the starting pellet state, we need to pop it first so we can get the nextstate 
+        PelletVertex startState = pelletPath.pop();
 
         //continue pop to get the next state 
         PelletVertex nextState = pelletPath.pop();
