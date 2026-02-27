@@ -180,8 +180,8 @@ public class ThriftyPelletRouter
         final int Activate_Half_Plan = 6;  // activate half plan for 6 pellets and not touch the sensor of full plan
         final int Pellet_Remain;  // set the pellet reamin: mean eat until the pellet reamin some number
 
-        // try to store the bfs that have the same value
-        Map<Integer, int[]> bfs_memo = new HashMap<>();
+        // create visted to store the value thae we alreary process; max x and my is the borader dimention 
+        Map<Integer, int[]> visited = new HashMap<>();
         int max_X = game.getXBoardDimension();
         int max_Y = game.getYBoardDimension();
 
@@ -195,82 +195,153 @@ public class ThriftyPelletRouter
             Pellet_Remain = counter - Activate_Half_Plan;
         }
 
+        // create an priority queue name open set; and we compare f (g + h) and we chhose the smallest one 
+        // create an map named gscore to store the best value of g we have encounter 
+        // createa a path name begining path to store the path that we are using with start 
         PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>((p1,p2) -> Float.compare(p1.getTrueCost() + p1.getEstimatedPathCostToGoal(), p2.getTrueCost() + p2.getEstimatedPathCostToGoal()));
         Map<PelletVertex, Float> gScore = new HashMap<>();
         Path<PelletVertex> beginning_path = new Path<>(start);
 
+        //set the beginning estimate path cost to goal based on our heuristic funtion
         beginning_path.setEstimatedPathCostToGoal(getHeuristic(start, game, null));
+
+        // add the beginning path to PQ
         openSet.add(beginning_path);
+
+        // update the start gscore to zero (at gscore[start])
         gScore.put(start, 0f);
 
+        // while the priority queue is not empty
         while (!openSet.isEmpty()) {    
+            // pop the path that with them smallest f(g+_h) value 
             Path<PelletVertex> currentPath = openSet.poll();
+
+            // set currevertex as the current path' s destinatoin
             PelletVertex currenVertex = currentPath.getDestination();
 
+            // create best_g to store the best g we have 
             float best_g = gScore.getOrDefault(currenVertex, Float.POSITIVE_INFINITY);
+            // if the currentpath has a higer g value then we shoudl skip it; the bigger the better
             if (currentPath.getTrueCost() > best_g) {
                 continue;
             }
 
-            // we stop if we have enough pellet , and also if empty pellet also return current path, this conditon check both
+            // we stop if we have enough pellet , and also if empty pellet also return current path, this conditon check both (meaning we reach the goal)
             if (currenVertex.getRemainingPelletCoordinates().size() <= Pellet_Remain) {
                 return currentPath;
             }
+
+            // store the current pellet's pacman loccatin in start_c
             Coordinate start_c = currenVertex.getPacmanCoordinate();
 
-            int key = (start_c.x() << 16) | start_c.y();
+            // y times x help us  went to the start of row y; + x will let us move to col x at that row
+            int key_value = start_c.y() * max_X + start_c.x();
 
-            int[] dist = bfs_memo.get(key);
+            // dist is going to store the shorstest distancd to that grid (if we calcuate before, we can use the value directly)
+            int[] dist = visited.get(key_value);
+
+            // if dist is empty we get in and find the s.p (a mini bfs implementation here)
             if (dist == null) {
-            dist = new int[max_X * max_Y];
-            for (int i = 0; i < dist.length; i++) { 
-                dist[i] = -1;
-            }
-            LinkedList<Coordinate> q = new LinkedList<>();
-            dist[start_c.y() * max_X + start_c.x()] = 0;
-            q.add(start_c);
 
-            // full BFS from start_c to all reachable cells
-            while (!q.isEmpty()) {
-                Coordinate cur = q.removeFirst();
-                int current_id = cur.y() * max_X + cur.x();
-                int curD = dist[current_id];
+                // here we need to init the dist before we calculate, and the size of the int array is the size of the game borad
+                dist = new int[max_X * max_Y];
 
-                for (Action a : Action.values()) {
-                    if (!game.isLegalPacmanMove(cur, a)) continue;
-
-                    Coordinate nxt = a.apply(cur);
-                    if (nxt.equals(cur)) continue;
-
-                    int nxtIdx = nxt.y() * max_X + nxt.x();
-                    if (dist[nxtIdx] != -1) continue; // <-- FIXED: check dist, not nxtIdx
-
-                    dist[nxtIdx] = curD + 1;
-                    q.add(nxt);
+                // use a for loop to init all the dist that is not visit to -1
+                for (int i = 0; i < dist.length; i++) { 
+                    dist[i] = -1;
                 }
-            }
 
-            bfs_memo.put(key, dist);
+                //  create a link list to get the shortest path (queue)
+                LinkedList<Coordinate> queue = new LinkedList<>();
+
+                // start_c.y() * max_X + start_c.x(); that the key value same explaintain at line 237
+                dist[start_c.y() * max_X + start_c.x()] = 0;
+                // push the staring coordinate to the queue
+                queue.add(start_c);
+
+                // if the queue is not empty
+                while (!queue.isEmpty()) {
+
+                    // pop the first coordinate in queue and store in to current coordinate
+                    Coordinate current_coordinate = queue.removeFirst();
+
+                    // calcuate the current coordinate id value with its own x, y ; same explaination at line 237
+                    int current_id = current_coordinate.y() * max_X + current_coordinate.x();
+                    // store the dist[current_id]'s s.p in current dist
+                    int current_Dist = dist[current_id];
+
+                    // create a for loop itereate all the action that can make (call Action.values())
+                    for (Action Direction : Action.values()) {
+                        // if the direction lead us to a wall, we skip, and try the next direcction
+                        if (!game.isLegalPacmanMove(current_coordinate, Direction)){ 
+                            continue;
+                        }
+
+                        // take direction and return a coordinate that store in the next_coordinate (call apply in Action.clss)
+                        Coordinate next_coordinate = Direction.apply(current_coordinate);
+                        
+                        // if this direction result the same as before skip the rest
+                        if (next_coordinate.equals(current_coordinate)) {
+                            continue;
+                        }
+
+                        // calculate the key value for next coordinate so it can be added to dist properly;
+                        int next_cord_key = next_coordinate.y() * max_X + next_coordinate.x();
+                        
+                        // if this key value indicate that we have visit it; skip the rest
+                        if (dist[next_cord_key] != -1) {
+                            continue;
+                        }
+
+                        // if not visit add one to current dist (not like dikjstra; bfs method is unweight; here we assume it 1 as edgewiegh[more abstratly we see it as take one move])
+                        dist[next_cord_key ] = current_Dist + 1;
+
+                        // add the next coordinate to the queue
+                        queue.add(next_coordinate);
+                    }
+                }
+                // save the dist to visited; so it can avoid recalculating the value;
+                visited.put(key_value, dist);
             }
-        
+            
+            // use a for loop to iterate each neighbor from currentVertex outgoingNeighbors
             for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null)) {
+                
                 Coordinate goal_c = neighbor.getPacmanCoordinate();
-                int bfs_dis = dist[goal_c.y() * max_X + goal_c.x()];
-                if (bfs_dis == -1) continue; // unreachable
-    
-                float lower_bound_weight = (float) bfs_dis;
-                float newG = best_g + lower_bound_weight;
-    
+
+                // use the same key formular to obtain the dist value in dist[] , the value is the edge cost from the current to the neighbor
+                int dist_to_neighbor = dist[goal_c.y() * max_X + goal_c.x()];
+                
+                // if the value is one, mean we have not visit it yet, because we have not calulate yet
+                if (dist_to_neighbor == -1) {
+                    continue;
+                }
+
+                // if has a value; we store the value to lower_bound_weight (cast to float because the calcuation we did is based on integer type)
+                float best_neighbor = (float) dist_to_neighbor;
+
+                // newG: is the sum of the cost to each neighbor on this path (best_g + best neighbor)
+                float newG = best_g + best_neighbor;
+                
+                // if newG is smaller mean the path is good to go; (if the neighbor no t been visit the defalut will choose +infinity here)
                 if (newG < gScore.getOrDefault(neighbor, Float.POSITIVE_INFINITY)) {
+
+                    // store the best g(cost) to this neighbor to gscore
                     gScore.put(neighbor, newG);
-                    Path<PelletVertex> next_path = new Path<>(neighbor, lower_bound_weight, currentPath);
+
+                    // create a next path that from the current path (we eat the pellet)
+                    Path<PelletVertex> next_path = new Path<>(neighbor, best_neighbor, currentPath);
+
+                    // set the next path estimatepathcost to goal based on our heuristic vlaue 
                     next_path.setEstimatedPathCostToGoal(getHeuristic(neighbor, game, null));
+                    
+                    // add the next path to the pq for later extract 
                     openSet.add(next_path);
                 }
             }
         }
     
-            return null;
+        return null;
     }
 }
 
