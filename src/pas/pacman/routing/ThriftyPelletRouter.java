@@ -149,6 +149,11 @@ public class ThriftyPelletRouter
         final int Activate_Half_Plan = 6;  // activate half plan for 6 pellets and not touch the sensor of full plan
         final int Pellet_Remain;
 
+        // try to store the bfs that have the same value
+        Map<Integer, int[]> bfs_memo = new HashMap<>();
+        int max_X = game.getXBoardDimension();
+        int max_Y = game.getYBoardDimension();
+
         if (counter <= Activate_Full_Plan) {
             // if ther is less then 12 pellet left, make A star umlimited
             Pellet_Remain = 0;
@@ -179,35 +184,40 @@ public class ThriftyPelletRouter
                 return currentPath;
             }
             Coordinate start_c = currenVertex.getPacmanCoordinate();
-            int max_X = game.getXBoardDimension();
-            int max_Y = game.getYBoardDimension();
 
-            int[][] dist = new int[max_Y][max_X];
-            for (int i = 0; i < max_Y; i++) {
-                for (int j = 0; j < max_X; j++) dist[i][j] = -1;
+            int key = (start_c.x() << 16) | start_c.y();
+
+            int[] dist = bfs_memo.get(key);
+            if (dist == null) {
+            dist = new int[max_X * max_Y];
+            for (int i = 0; i < dist.length; i++) { 
+                dist[i] = -1;
             }
-
             LinkedList<Coordinate> q = new LinkedList<>();
-            dist[start_c.y()][start_c.x()] = 0;
+            dist[start_c.y() * max_X + start_c.x()] = 0;
             q.add(start_c);
 
             // full BFS from start_c to all reachable cells
             while (!q.isEmpty()) {
                 Coordinate cur = q.removeFirst();
-                int curD = dist[cur.y()][cur.x()];
+                int current_id = cur.y() * max_X + cur.x();
+                int curD = dist[current_id];
 
                 for (Action a : Action.values()) {
                     if (!game.isLegalPacmanMove(cur, a)) continue;
 
                     Coordinate nxt = a.apply(cur);
                     if (nxt.equals(cur)) continue; // filters STOP/no-op
+                    int nxtIdx = nxt.y() * max_X + nxt.x();
+                    if (nxtIdx != -1) continue;
 
-                    if (dist[nxt.y()][nxt.x()] != -1) continue;
-
-                    dist[nxt.y()][nxt.x()] = curD + 1;
+                    dist[nxtIdx] = curD + 1;
                     q.add(nxt);
                 }
             }
+            bfsCache.put(key, dist);
+
+        }
             for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null))
             {
                 
@@ -225,7 +235,7 @@ public class ThriftyPelletRouter
                     openSet.add(next_path);
                 }
             }
-        }
+        
 
         return null;
     }
