@@ -141,8 +141,7 @@ public class ThriftyPelletRouter
 
 
     @Override
-    public Path<PelletVertex> graphSearch(final GameView game)
-    {
+    public Path<PelletVertex> graphSearch(final GameView game){
         final PelletVertex start = new PelletVertex(game);
         final int counter = start.getRemainingPelletCoordinates().size();
         final int Activate_Full_Plan = 12; // activate full plan when less then 12
@@ -169,8 +168,7 @@ public class ThriftyPelletRouter
         openSet.add(beginning_path);
         gScore.put(start, 0f);
 
-        while (!openSet.isEmpty())
-        {
+        while (!openSet.isEmpty()) {    
             Path<PelletVertex> currentPath = openSet.poll();
             PelletVertex currenVertex = currentPath.getDestination();
 
@@ -205,41 +203,40 @@ public class ThriftyPelletRouter
 
                 for (Action a : Action.values()) {
                     if (!game.isLegalPacmanMove(cur, a)) continue;
+
                     Coordinate nxt = a.apply(cur);
-                    if (nxt.equals(cur)) continue; 
+                    if (nxt.equals(cur)) continue;
 
                     int nxtIdx = nxt.y() * max_X + nxt.x();
-                    if (nxtIdx != -1) continue;
+                    if (dist[nxtIdx] != -1) continue; // <-- FIXED: check dist, not nxtIdx
 
                     dist[nxtIdx] = curD + 1;
                     q.add(nxt);
                 }
             }
-            bfs_memo.put(key, dist);
 
-        }
-            for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null))
-            {
-                
+            bfs_memo.put(key, dist);
+            }
+        
+            for (PelletVertex neighbor : getOutgoingNeighbors(currenVertex, game, null)) {
                 Coordinate goal_c = neighbor.getPacmanCoordinate();
                 int bfs_dis = dist[goal_c.y() * max_X + goal_c.x()];
                 if (bfs_dis == -1) continue; // unreachable
+    
                 float lower_bound_weight = (float) bfs_dis;
                 float newG = best_g + lower_bound_weight;
-
-                if (newG < gScore.getOrDefault(neighbor, Float.POSITIVE_INFINITY))
-                {
+    
+                if (newG < gScore.getOrDefault(neighbor, Float.POSITIVE_INFINITY)) {
                     gScore.put(neighbor, newG);
                     Path<PelletVertex> next_path = new Path<>(neighbor, lower_bound_weight, currentPath);
                     next_path.setEstimatedPathCostToGoal(getHeuristic(neighbor, game, null));
                     openSet.add(next_path);
                 }
             }
-        
-
-        return null;
+        }
+    
+            return null;
     }
-
 }
 
 // javac -cp "./lib/*;." @pacman.srcs   
