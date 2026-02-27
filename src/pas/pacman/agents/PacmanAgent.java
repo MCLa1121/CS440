@@ -168,7 +168,7 @@ public class PacmanAgent
         }
 
         if (plan.isEmpty()){
-            return Action.values()[this.getRandom().nextInt(Action.values().length)];;
+            return Action.values()[this.getRandom().nextInt(Action.values().length)];
         }
 
         // Next coordinate to move into
