@@ -31,6 +31,9 @@ public class ThriftyPelletRouter
     // If you want to encode other information you think is useful for planning the order
     // of pellets ot eat besides Coordinates and data available in GameView
     // you can do so here.
+
+
+
     public static class PelletExtraParams
         extends ExtraParams
     {
@@ -167,24 +170,31 @@ public class ThriftyPelletRouter
 
     @Override
     public Path<PelletVertex> graphSearch(final GameView game){
+        // start: the current game start status of the pellet
         final PelletVertex start = new PelletVertex(game);
+        // counter: the number of the pellets that reamin in the current game's status
         final int counter = start.getRemainingPelletCoordinates().size();
-        final int Activate_Full_Plan = 12; // activate full plan when less then 12
+
+        // activate full plan when less then 12
+        final int Activate_Full_Plan = 12; 
         final int Activate_Half_Plan = 6;  // activate half plan for 6 pellets and not touch the sensor of full plan
-        final int Pellet_Remain;
+        final int Pellet_Remain;  // set the pellet reamin: mean eat until the pellet reamin some number
 
         // try to store the bfs that have the same value
         Map<Integer, int[]> bfs_memo = new HashMap<>();
         int max_X = game.getXBoardDimension();
         int max_Y = game.getYBoardDimension();
 
+        // if not limit the expansion of eating all the pellet, oom rise(because there are too many pellet to eat);
         if (counter <= Activate_Full_Plan) {
-            // if ther is less then 12 pellet left, make A star umlimited
+            // if ther is less then 12 pellet left, make A star umlimited to plan to eat all of the pellet
+            // eat until the pellet remain 0
             Pellet_Remain = 0;
         }else{
-            // otherwise, only allowed A start with limitation
+            // otherwise, only allowed A start with limitation to plan to eat only 6 pellets
             Pellet_Remain = counter - Activate_Half_Plan;
         }
+
         PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>((p1,p2) -> Float.compare(p1.getTrueCost() + p1.getEstimatedPathCostToGoal(), p2.getTrueCost() + p2.getEstimatedPathCostToGoal()));
         Map<PelletVertex, Float> gScore = new HashMap<>();
         Path<PelletVertex> beginning_path = new Path<>(start);
