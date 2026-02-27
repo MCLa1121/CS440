@@ -61,6 +61,13 @@ public class PacmanAgent
         
         //get the target locatoin 
         Coordinate target = this.getTargetCoordinate();
+
+        //if we reach a target, we make it null so we can find the next one 
+        if (target != null && current.equals(target)) {
+            this.setTargetCoordinate(null);
+            target = null;
+        }
+        
         //check whether the target is set or not, if it is, then we plan it 
         if (target != null){
             Path<Coordinate> boardPath = this.getBoardRouter().graphSearch(current, target, game);
@@ -104,7 +111,7 @@ public class PacmanAgent
             p = p.getParentPath();
         }
         // If then there are no pellets left, we finish the currnet plan
-        if (pelletPath.size() <= 2){
+        if (pelletPath.size() < 2){
             this.setPlanToGetToTarget(null);
             this.setTargetCoordinate(null);
             return;
