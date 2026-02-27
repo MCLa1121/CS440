@@ -232,3 +232,5 @@ public class ThriftyPelletRouter
 
 }
 
+// javac -cp "./lib/*;." @pacman.srcs   
+// java -cp "./lib/*;." edu.bu.pas.pacman.Main -a src.pas.pacman.agents.PacmanAgent -x 9 -y 9 -g 0
