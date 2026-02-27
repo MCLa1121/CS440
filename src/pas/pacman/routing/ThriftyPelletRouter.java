@@ -54,31 +54,47 @@ public class ThriftyPelletRouter
                                                          final ExtraParams params)
     {
         // TODO: implement me!
-
-
-
-        // get remaining pellets in the game and store all the information to collection
+        // get remaining pellets in the game and store all the information to collection<coordinate>
         Collection<Coordinate> current_remaining_pellet = src.getRemainingPelletCoordinates();
-        //create a arraylist Note: Data type: Arraylist<PelletVertex>; using Arraylist to store the neighbour
+
+        //create a arraylist for pellet that remain Note: Data type: Arraylist<Coordinate>; using Arraylist to store the neighbour so we are able to use the comparator (pellvertex do not have it)
         ArrayList<Coordinate> pellet_arr_list = new ArrayList<>(current_remaining_pellet); 
+
+        // create pacman location to store the pacman location (src)
         Coordinate pacman_location = src.getPacmanCoordinate();
 
-        pellet_arr_list.sort(Comparator.comparingInt(p -> Math.abs(pacman_location.x() - p.x()) + Math.abs(pacman_location.y() - p.y())));
+        // we sort the pellet array list so we can be sure to choose the closest pellet in our current list (and we sort by distance)
+        pellet_arr_list.sort(Comparator.comparingInt(dis_in_list -> Math.abs(pacman_location.x() - dis_in_list.x()) + Math.abs(pacman_location.y() - dis_in_list.y())));
         
-        final int prune_requirment = 12; // if too small , we do not prune;
-        final int set_limit = 4;
+        // we set a bound to activate the prune; which i set to 12(mean we need at least 12 pellet to activate purning); test aroud 9 to 16 (12 to 10 will be a great range to choose)
+        final int prune_requirment = 12;
+
+        // create final int type set_limmt : is the number of closest 4 pellet (in other word purning the first cloest four before we go any further) NOTE: witout set a limit, OOM will trap us
+        final int set_limit = 4; 
+
+        // store the size of pellet array list to limit size 
         int limit_size = pellet_arr_list.size();
-        if (pellet_arr_list.size() > prune_requirment) {
-            limit_size = Math.min(set_limit, pellet_arr_list.size()); // pruning for 4 best pellets
+
+        // if the size of pellet array list is larger the prune requrement(12) Note: we want to prun when its bigger than 12; so we can avoid OOM happen; 
+        if (pellet_arr_list.size() > prune_requirment){
+
+            // if the size of the pellet array list is larger than the set limit our limit size is 4(set limit)
+            // if the size of the pellet array list is less than the set limit our limit size is the size of the pellet array 
+            limit_size = Math.min(set_limit, pellet_arr_list.size()); 
         }
+
+        // Here we use the limit size to create the ArrayList<PelletVertex> neighbour NOTE: it give a fixibility that we can choose limit size to 4 or worst case as the size of pellet array (when too big we can puring so its still greate for us)
         ArrayList<PelletVertex> neighbour = new ArrayList<>(limit_size);
-        //get all the neighbour coordinate using for loop to iterate over current remaining pellet
-        // it help to save all the possible case: what if we eat this pellet. eat this(different pellet); remove this; move there; save to neighbor
+
+        // get all the neighbour using for loop to iterate over current closet pellet
         for (int i = 0; i < limit_size; i++) {
+
+            // the removePellet returnh a new pellet vertex and remove the pellet we get from the set and we added to the neighbor
             neighbour.add(src.removePellet(pellet_arr_list.get(i)));
         }
+
+        // return neighbor; NOTE: the neighbor list in other word is the next state after we eat the pellet that we choosen to process(with prunning 4 closet pellet)
         return neighbour;
-        // return null;
     }
 
     // getEdgeWeight. This method takes two PelletVertex objects that are assumed to be neighbors
@@ -239,5 +255,9 @@ public class ThriftyPelletRouter
     }
 }
 
+// javac -cp "./lib/*;." @pacman.srcs   
+// java -cp "./lib/*;." edu.bu.pas.pacman.Main -a src.pas.pacman.agents.PacmanAgent -x 9 -y 9 -g 0
+// javac -cp "./lib/*;." @pacman.srcs   
+// java -cp "./lib/*;." edu.bu.pas.pacman.Main -a src.pas.pacman.agents.PacmanAgent -x 9 -y 9 -g 0
 // javac -cp "./lib/*;." @pacman.srcs   
 // java -cp "./lib/*;." edu.bu.pas.pacman.Main -a src.pas.pacman.agents.PacmanAgent -x 9 -y 9 -g 0
