@@ -104,6 +104,15 @@ public class ThriftyBoardRouter
             //update current node to be the parent of the smallest node
             //add current node to the came_from list, meaning it is fixed
             Coordinate cur = current.getDestination();
+            //Define a current best cost so far so we can keep track of it  
+            Float currentBest = best.get(cur);
+
+            //Now check whether the current best is the best or not
+            //For the next pop sprcificly (each iteration)
+            //meaning if this path is worse than the best path we already found to this node, ignore it
+            if(currentBest != null && current.getTrueCost() > currentBest){
+                continue; // meaning this is not the best cost path, we skip it 
+            }
 
             //check whether the current coordinate is the target
             if(cur.equals(tgt)){
@@ -111,7 +120,7 @@ public class ThriftyBoardRouter
             }
             //get the true cost of the current path
             float c = current.getTrueCost();
-            //float currentBest = best.get(cur);
+            
 
             //get and record  all the neighbour of the currnet coordinate 
             for(Coordinate nbr : getOutgoingNeighbors(cur, game, null)){
@@ -126,7 +135,7 @@ public class ThriftyBoardRouter
                     best.put(nbr, Cost);
 
                     //set the next path, src are the nbr, 1 cost and parent parh os the current path 
-                    Path<Coordinate> next = new Path<Coordinate>(nbr, 1.0f, current);
+                    Path<Coordinate> next = new Path<Coordinate>(nbr, Cost, current);
                     //set the cost of the neighbour to the goal
                     next.setEstimatedPathCostToGoal(Cost(nbr,tgt));
                     //add next to the check list
