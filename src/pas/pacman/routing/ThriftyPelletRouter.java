@@ -141,6 +141,18 @@ public class ThriftyPelletRouter
     public Path<PelletVertex> graphSearch(final GameView game)
     {
         final PelletVertex start = new PelletVertex(game);
+        final int counter = start.getRemainingPelletCoordinates().size();
+        final int Activate_Full_Plan = 12; // activate full plan when less then 12
+        final int Activate_Half_Plan = 6;  // activate half plan for 6 pellets and not touch the sensor of full plan
+        final int Pellet_Remain;
+
+        if (counter <= Activate_Full_Plan) {
+            // if ther is less then 12 pellet left, make A star umlimited
+            Pellet_Remain = 0;
+        }else{
+            // otherwise, only allowed A start with limitation
+            Pellet_Remain = counter - Activate_Half_Plan;
+        }
         PriorityQueue<Path<PelletVertex>> openSet = new PriorityQueue<>((p1,p2) -> Float.compare(p1.getTrueCost() + p1.getEstimatedPathCostToGoal(), p2.getTrueCost() + p2.getEstimatedPathCostToGoal()));
         Map<PelletVertex, Float> gScore = new HashMap<>();
         Path<PelletVertex> beginning_path = new Path<>(start);
@@ -159,7 +171,8 @@ public class ThriftyPelletRouter
                 continue;
             }
 
-            if (currenVertex.getRemainingPelletCoordinates().isEmpty()) {
+            // we stop if we have enough pellet , and also if empty pellet also return current path, this conditon check both
+            if (currenVertex.getRemainingPelletCoordinates().size() <= Pellet_Remain) {
                 return currentPath;
             }
 
