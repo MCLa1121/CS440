@@ -110,11 +110,11 @@ public class ThriftyBoardRouter
             //Now check whether the current best is the best or not
             //For the next pop sprcificly (each iteration)
             //meaning if this path is worse than the best path we already found to this node, ignore it
-            if(currentBest != null && current.getTrueCost() > currentBest){
-                continue; // meaning this is not the best cost path, we skip it 
-            }
+            // if(currentBest != null && current.getTrueCost() > currentBest){
+            //     continue; // meaning this is not the best cost path, we skip it 
+            // }
 
-            //check whether the current coordinate is the target
+            // //check whether the current coordinate is the target
             if(cur.equals(tgt)){
                 return current;
             }
