@@ -159,7 +159,7 @@ public class PacmanAgent
 
         // if plan remain null, then we do nothing 
         if (plan == null || plan.isEmpty()){
-            return Action.values()[this.getRandom().nextInt(Action.values().length)];;
+            return Action.values()[this.getRandom().nextInt(Action.values().length)];
         }
 
         // if top of plan equals current position, remove it
@@ -180,7 +180,7 @@ public class PacmanAgent
         catch (Exception e){
             // Plan became invalid
             this.setPlanToGetToTarget(null);
-            return Action.values()[this.getRandom().nextInt(Action.values().length)];;
+            return Action.values()[this.getRandom().nextInt(Action.values().length)];
         }
             //return Action.values()[this.getRandom().nextInt(Action.values().length)];
         }
