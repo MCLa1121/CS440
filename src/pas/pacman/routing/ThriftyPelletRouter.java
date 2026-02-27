@@ -109,16 +109,20 @@ public class ThriftyPelletRouter
         // TODO: implement me!
         // src and dst is neighbors, and the edge weight is src - dst using distance funtion
         // Calculate the actual distance between these two specific neighbors
+        // get src and dst pacman locatoin
         Coordinate src_pac = src.getPacmanCoordinate();
         Coordinate dst_pac = dst.getPacmanCoordinate();
+
+        // get the x,y coordinate from src and dst
         float src_x = src_pac.x();
         float src_y = src_pac.y();
         float dst_x = dst_pac.x();
         float dst_y = dst_pac.y();
 
+        // use manhattan distance to calcualte the edgs weight
         float weight = Math.abs(src_x-dst_x) + Math.abs(src_y - dst_y); 
 
-        // BE SURE weight is NON NEGATIVE to prevent SO WE WILL NOT MESS UP THE ALGO
+        // return weight Note:BE SURE weight is NON NEGATIVE to prevent SO WE WILL NOT MESS UP THE ALGO (so we use abs)
         return weight;
     }
 
