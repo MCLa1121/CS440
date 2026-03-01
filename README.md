@@ -13,5 +13,5 @@ This repository contains my work for **CS440**.
 
 ```text
 src/
-  Lab/   # weekly labs
-  Pac/   # Pac-Man project
+  labs/   # weekly labs
+  pas/   # Pac-Man project
