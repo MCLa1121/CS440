@@ -8,8 +8,8 @@ This repository contains my work for **CS440**.
 
 ## Repo Structure
 
-- [`src/Lab/`](./src/labs) — weekly lab work
-- [`src/Pac/`](./src/Pas) — Pac-Man group project work
+- [`src/labs/`](./src/labs) — weekly lab work
+- [`src/pas/`](./src/pas) — Pac-Man group project work
 
 ```text
 src/
