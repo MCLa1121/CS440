@@ -56,6 +56,7 @@ public class DepthThresholdedMinimaxAgent
          * TODO: complete me!
          */
         int depth = getMaxDepth();
+        Node bestNode = null;
         //check whether the node it the termal node or we have reach depth = 0
         if(node.isTerminal()){
             return node;
@@ -74,12 +75,16 @@ public class DepthThresholdedMinimaxAgent
             double a = Double.NEGATIVE_INFINITY;
             //first by getting the children of the current node
             for (Node children : node.getChildren()) {
-                double value = Heuristics.calculateHeuristicValue(children);
-                a = Math.max(a,value);
                 minimax(children);
+                //check whether a is less than the current utility value
+                if((a < children.getUtilityValue())){
+                    //update the current best node 
+                    bestNode = children;
+                    //update a to the current utility value
+                    a = children.getUtilityValue();
+                }
+                
             }
-            
-            
         }else{
             //our oppotent to move
             //choose the min move
@@ -87,13 +92,15 @@ public class DepthThresholdedMinimaxAgent
             double a = Double.POSITIVE_INFINITY;
             //first by getting the children of the current node
             for (Node children : node.getChildren()) {
-                double value = Heuristics.calculateHeuristicValue(children);
-                a = Math.max(a,value);
-                depth--;
                 minimax(children);
+                if((a > children.getUtilityValue())){
+                    bestNode = children;
+                    a = children.getUtilityValue();
+                }
+                
             }
         }
-        return node;
+        return bestNode;
     }
 
     public Node search(Node node)
