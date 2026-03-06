@@ -57,15 +57,15 @@ public class DepthThresholdedMinimaxAgent
          */
         int depth = getMaxDepth();
         //check whether the node it the termal node or we have reach depth = 0
-        if(node.isTerminal() || depth == 0){
-            return minimax(node);
+        if(node.isTerminal()){
+            return node;
         }
         //if our final node is an artifical node
         //we set the utilty value ourself
-        if(!node.isTerminal() && depth == 0){
+        if(node.getDepth() >= depth){
             double estimate = Heuristics.calculateHeuristicValue(node);
             node.setUtilityValue(estimate);
-            return minimax(node);
+            return node;
         }
         if(node.getCurrentPlayerType() == node.getMyPlayerType()){
             //if this is our turn to move
@@ -76,10 +76,9 @@ public class DepthThresholdedMinimaxAgent
             for (Node children : node.getChildren()) {
                 double value = Heuristics.calculateHeuristicValue(children);
                 a = Math.max(a,value);
-                depth--;
                 minimax(children);
             }
-            //after finish the current node, we go to the next depth
+            
             
         }else{
             //our oppotent to move
@@ -105,3 +104,5 @@ public class DepthThresholdedMinimaxAgent
     @Override
     public void afterGameEnds(final RecursiveTicTacToeGameView game) {}
 }
+//javac -cp "./lib/*;." @rttt.srcs
+//java -cp "./lib/*;." edu.bu.labs.rttt.Main -o src.labs.rttt.agents.DepthThresholdedMinimaxAgent -x src.labs.rttt.agents.DepthThresholdedMinimaxAgent
