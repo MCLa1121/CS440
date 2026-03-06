@@ -55,7 +55,46 @@ public class DepthThresholdedMinimaxAgent
         /**
          * TODO: complete me!
          */
-        return null;
+        int depth = getMaxDepth();
+        //check whether the node it the termal node or we have reach depth = 0
+        if(node.isTerminal() || depth == 0){
+            return minimax(node);
+        }
+        //if our final node is an artifical node
+        //we set the utilty value ourself
+        if(!node.isTerminal() && depth == 0){
+            double estimate = Heuristics.calculateHeuristicValue(node);
+            node.setUtilityValue(estimate);
+            return minimax(node);
+        }
+        if(node.getCurrentPlayerType() == node.getMyPlayerType()){
+            //if this is our turn to move
+            //we get the max move 
+            //set value a to be negative infinity
+            double a = Double.NEGATIVE_INFINITY;
+            //first by getting the children of the current node
+            for (Node children : node.getChildren()) {
+                double value = Heuristics.calculateHeuristicValue(children);
+                a = Math.max(a,value);
+                depth--;
+                minimax(children);
+            }
+            //after finish the current node, we go to the next depth
+            
+        }else{
+            //our oppotent to move
+            //choose the min move
+            //set value a to be infinity
+            double a = Double.POSITIVE_INFINITY;
+            //first by getting the children of the current node
+            for (Node children : node.getChildren()) {
+                double value = Heuristics.calculateHeuristicValue(children);
+                a = Math.max(a,value);
+                depth--;
+                minimax(children);
+            }
+        }
+        return node;
     }
 
     public Node search(Node node)
