@@ -79,12 +79,13 @@ public class DepthThresholdedMinimaxAgent
                 //check whether a is less than the current utility value
                 if((a < current.getUtilityValue())){
                     //update the current best node 
-                    bestNode = current;
+                    bestNode = children;
                     //update a to the current utility value
-                    a = current.getUtilityValue();
+                    a = bestNode.getUtilityValue();
                 }
                 
             }
+            node.setUtilityValue(a);
         }else{
             //our oppotent to move
             //choose the min move
@@ -92,13 +93,14 @@ public class DepthThresholdedMinimaxAgent
             double a = Double.POSITIVE_INFINITY;
             //first by getting the children of the current node
             for (Node children : node.getChildren()) {
-                Node current = minimax(children);
-                if((a > current.getUtilityValue())){
-                    bestNode = current;
-                    a = current.getUtilityValue();
+                Node current2 = minimax(children);
+                if((a > current2.getUtilityValue())){
+                    bestNode = children;
+                    a = bestNode.getUtilityValue(); 
                 }
                 
             }
+            node.setUtilityValue(a);
         }
         return bestNode;
     }
