@@ -55,7 +55,7 @@ public class DepthThresholdedMinimaxAgent
         /**
          * TODO: complete me!
          */
-        int depth = getMaxDepth();
+        //int depth = getMaxDepth();
         Node bestNode = null;
         //check whether the node it the termal node or we have reach depth = 0
         if(node.isTerminal()){
@@ -63,7 +63,7 @@ public class DepthThresholdedMinimaxAgent
         }
         //if our final node is an artifical node
         //we set the utilty value ourself
-        if(node.getDepth() >= depth){
+        if(node.getDepth() >= this.maxDepth){
             double estimate = Heuristics.calculateHeuristicValue(node);
             node.setUtilityValue(estimate);
             return node;
@@ -75,13 +75,13 @@ public class DepthThresholdedMinimaxAgent
             double a = Double.NEGATIVE_INFINITY;
             //first by getting the children of the current node
             for (Node children : node.getChildren()) {
-                minimax(children);
+                Node current = minimax(children);
                 //check whether a is less than the current utility value
-                if((a < children.getUtilityValue())){
+                if((a < current.getUtilityValue())){
                     //update the current best node 
-                    bestNode = children;
+                    bestNode = current;
                     //update a to the current utility value
-                    a = children.getUtilityValue();
+                    a = current.getUtilityValue();
                 }
                 
             }
@@ -92,10 +92,10 @@ public class DepthThresholdedMinimaxAgent
             double a = Double.POSITIVE_INFINITY;
             //first by getting the children of the current node
             for (Node children : node.getChildren()) {
-                minimax(children);
-                if((a > children.getUtilityValue())){
-                    bestNode = children;
-                    a = children.getUtilityValue();
+                Node current = minimax(children);
+                if((a > current.getUtilityValue())){
+                    bestNode = current;
+                    a = current.getUtilityValue();
                 }
                 
             }
