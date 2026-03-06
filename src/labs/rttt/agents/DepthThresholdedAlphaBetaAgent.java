@@ -58,8 +58,63 @@ public class DepthThresholdedAlphaBetaAgent
         /**
          * TODO: complete me!
          */
-        return null;
+
+                Node bestNode = null;
+        //check whether the node it the termal node or we have reach depth = 0
+        if(node.isTerminal()){
+            return node;
+        }
+        //if our final node is an artifical node
+        //we set the utilty value ourself
+        if(node.getDepth() >= this.maxDepth){
+            double estimate = Heuristics.calculateHeuristicValue(node);
+            node.setUtilityValue(estimate);
+            return node;
+        }
+        if(node.getCurrentPlayerType() == node.getMyPlayerType()){
+            //if this is our turn to move
+            //we get the max move 
+            //set alpha value a to be negative infinity
+            double a = Double.NEGATIVE_INFINITY;
+            //first by getting the children of the current node
+            for (Node children : node.getChildren()) {
+                Node current = alphaBeta(children, alpha, beta);
+                //check whether a is less than the current utility value
+                if((a < current.getUtilityValue())){
+                    //update the current best node 
+                    bestNode = children;
+                    //update a to the current utility value
+                    a = bestNode.getUtilityValue();
+                    alpha = current.getUtilityValue();
+                }
+                if(alpha >= beta){
+                    break; //purn
+                }
+                
+            }
+            node.setUtilityValue(a);
+        }else{
+            //our oppotent to move
+            //choose the min move
+            //set beta value a to be infinity
+            double b = Double.POSITIVE_INFINITY;
+            //first by getting the children of the current node
+            for (Node children : node.getChildren()) {
+                Node current2 = alphaBeta(children, alpha, beta);
+                if((b > current2.getUtilityValue())){
+                    bestNode = children;
+                    b = bestNode.getUtilityValue(); 
+                    beta = current2.getUtilityValue();
+                }
+                if(alpha >= beta){
+                    break; //purn
+                }
+            }
+            node.setUtilityValue(b);
+        }
+        return bestNode;
     }
+
 
     public Node search(Node node)
     {
