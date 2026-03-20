@@ -60,6 +60,15 @@ public class ExpectedOutcomeAgent
                        final Integer drawnCardIdx)
     {
         // TODO: implement me!
+        /*general idea
+        1.selection 
+        2.if the node is the leaf node, we do node expansion
+        3.expand the tree in the normal way and use rollouts at artificial leaves to update q-values
+        4.if it is a leaf node and it has been visited, rollout 
+        5.for node expansion, find the first new node, the find the value of it 
+        6.keep doing it until we reach the terminal state, rollout
+        7.after find the value, backpropogation 
+        */
         return null;
     }
 
@@ -75,6 +84,45 @@ public class ExpectedOutcomeAgent
     public Move argmaxQValues(final Node node)
     {
         // TODO: implement me!
+        //three cases, legal and non-legal move, a may drown card move 
+        //find the largest q value if it is a legal move
+
+        //get the current state
+        Node.NodeState state = node.getNodeState();
+        //now check which case the current case belong to
+        //if the current state is a non-legal move 
+        if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
+            return null;
+        }
+        //if in the current state the player need to draw one card.
+        if(state == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD){
+            //keep information of the cards
+            //if the index = 0, we play the card 
+            //if the index = 1, we keep the card
+            int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
+            int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
+            //a variable that check how good is the playedcard  
+            float playQ; 
+            //check how many time this move has been sampled
+            if(node.getQCount(playIdx) == 0){
+                //if it equal to 0, we set the current move to negative infinity 
+                //since we dont want to comput Q value by dividing 0
+                playQ = Float.NEGATIVE_INFINITY;//avoid this move it 0
+            }else{
+                playQ = node.getQValue(playIdx);
+            }
+            //same logic for keepQ
+            float keepQ;
+            if(node.getQCount(keepIdx) == 0){
+                //if it equal to 0, we set the current move to negative infinity 
+                //since we dont want to comput Q value by dividing 0
+                playQ = Float.NEGATIVE_INFINITY;//avoid this move it 0
+            }else{
+                keepQ = node.getQValue(playIdx);
+            }
+
+
+        }
         return null;
     }
 }
