@@ -72,7 +72,56 @@ public class ExpectedOutcomeAgent
         */
         return null;
     }
+    
+    //adding a helper to find how many wild card we have in hand
+    private Color chooseBestWildColor(final HandView hand){
+        int red = 0;
+        int blue = 0;
+        int green = 0;
+        int yellow = 0;
 
+    for(int i = 0; i < hand.size(); i++){
+        Card c = hand.getCard(i);
+        if(c == null){
+            continue;
+        } 
+        //check what card we have 
+        switch(c.color()){
+            case RED:
+                red++;
+                break;
+            case BLUE:
+                blue++;
+                break;
+            case GREEN:
+                green++;
+                break;
+            case YELLOW:
+                yellow++;
+                break;
+            default:
+                break;
+        }
+    }
+    //set the current best color to be the red color 
+    Color best = Color.RED;
+    int bestCount = red;
+    //now check which one is better and update
+    if(blue > bestCount){
+        best = Color.BLUE;
+        bestCount = blue;
+    }
+    if(green > bestCount){
+        best = Color.GREEN;
+        bestCount = green;
+    }
+    if(yellow > bestCount){
+        best = Color.YELLOW;
+    }
+
+    return best;
+}
+    
     /**
      * A method to argmax the Q values inside a {@link Node}
      *
