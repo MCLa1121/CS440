@@ -21,7 +21,8 @@ import java.util.Set;
 public class ExpectedOutcomeAgent
     extends MCTSAgent
 {
-
+    //add a new field for argmax to solve a drawn card case
+    private Integer DrawnIDx = null;
     public static class MCTSNode
         extends Node
     {
@@ -116,12 +117,21 @@ public class ExpectedOutcomeAgent
             if(node.getQCount(keepIdx) == 0){
                 //if it equal to 0, we set the current move to negative infinity 
                 //since we dont want to comput Q value by dividing 0
-                playQ = Float.NEGATIVE_INFINITY;//avoid this move it 0
+                keepQ = Float.NEGATIVE_INFINITY;//avoid this move it 0
             }else{
                 keepQ = node.getQValue(playIdx);
             }
 
-
+            //now check which value is bigger
+            //if we want to keep the card, return null
+            if(keepQ > playQ){
+                return null;
+            }
+            //otherwise we play the drawn card
+            if(this.DrawnIDx == null){
+                return null;
+            }
+            return 
         }
         return null;
     }
