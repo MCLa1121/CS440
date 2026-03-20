@@ -5,7 +5,6 @@ package src.pas.uno.agents;
 import edu.bu.pas.uno.Card;
 import edu.bu.pas.uno.Game.GameView;
 import edu.bu.pas.uno.Hand.HandView;
-import edu.bu.pas.uno.agents.MCTSAgent;
 import edu.bu.pas.uno.enums.Color;
 import edu.bu.pas.uno.enums.Value;
 import edu.bu.pas.uno.moves.Move;
@@ -16,13 +15,16 @@ import java.util.Set;
 
 
 // JAVA PROJECT IMPORTS
-
+import edu.bu.pas.uno.Game;
+import edu.bu.pas.uno.Hand;
+import edu.bu.pas.uno.agents.*;;
 
 public class ExpectedOutcomeAgent
     extends MCTSAgent
 {
     //add a new field for argmax to solve a drawn card case
     private Integer DrawnIDx = null;
+    
     public static class MCTSNode
         extends Node
     {
@@ -36,7 +38,57 @@ public class ExpectedOutcomeAgent
         @Override
         public Node getChild(final Move move)
         {
-            return null;
+            //create a copy so we dont make change to the parent
+            Game nextGame = new Game(this.getGameView());
+            //now figure out whose turn it is 
+            int curLogicalPlayerID = this.getLogicalPlayerIdx();
+            //get the current player's hand 
+            Hand hand = nextGame.getHand(curLogicalPlayerID);
+            //we need to know what state we are curently at
+            Node.NodeState state = this.getNodeState();
+
+            //now condider the three different cases
+            //the case which the player has a legal move
+            if(state == NodeState.HAS_LEGAL_MOVES){
+                //the assign the move to the game
+                nextGame.resolveMove(move);
+            }
+
+            //case where we do not have a legal move
+            if(state == NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
+                //we need to draw the entire unresolved pile
+                int Draw = nextGame.getUnresolvedCards().total();
+                nextGame.drawTotal(hand, Draw);
+                //move on to the next player 
+                nextGame.resolveMove(null);
+            }
+
+            //case where no legal move but draw a card
+            if(state == NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD){
+                //drawn one card 
+                int drawn = nextGame.drawCard(hand);
+                //if the move is null, we keep the drawn card 
+                if(move == null){
+                    nextGame.resolveMove(null);
+                }else{//otherwise we play the drawn card
+                    Agent curAgent = nextGame.getAgent(curLogicalPlayerID);
+                    //get the drawn card 
+                    Card drawnCard = hand.getCard(drawn);
+                    //now we need to consider whether the card is a wild card or not
+                    //if it is, we need to consider the color chosen
+                    Move actualMove;
+                    if(drawnCard.isWild()){
+                        actualMove = Move.createMove(curAgent, drawn, move.getNewColorIfWild());
+                    }else{
+                        actualMove = Move.createMove(curAgent, drawn);
+                    }
+                    nextGame.resolveMove(actualMove);
+                }
+            }
+            // after the action is resolved, it is now the next player's turn
+            int nextLogicalPlayerIdx = nextGame.getPlayerOrder().getCurrentLogicalPlayerIdx();
+            // return the child node for the new state
+            return new MCTSNode(nextGame.getOmniscientView(),nextLogicalPlayerIdx,this);
         }
     }
 
@@ -198,7 +250,7 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
             if(this.DrawnIDx == null){
                 return null;
             }
-            return 
+            return makeMoveFromCardIdx(node.getGameView(), this.DrawnIDx);
         }
         return null;
     }
