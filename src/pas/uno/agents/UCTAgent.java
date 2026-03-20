@@ -11,6 +11,7 @@ import edu.bu.pas.uno.enums.Value;
 import edu.bu.pas.uno.moves.Move;
 import edu.bu.pas.uno.tree.Node;
 
+import java.util.ArrayList;
 import java.util.Random;
 import java.util.Set;
 
@@ -60,7 +61,28 @@ public class UCTAgent
                        final Integer drawnCardIdx)
     {
         // TODO: implement me!
-        return null;
+        Node current = ;
+
+        // if is current a leaf node
+        if (current.isTerminal()) {
+
+            if( the ni value is for current O) {
+                rollout;
+            }else{
+                for (Move act: current.getOrderedLegalMoves()) {
+                    add a new state to a tree;
+                    current = first new child node;
+                    if (si.isTerminal()) {
+                        
+                    }
+                }
+            }
+
+        }
+        current = current.getChild(null); // current = child node of current that maximize ucs1(si)
+
+
+        return current;
     }
 
     /**
@@ -75,6 +97,67 @@ public class UCTAgent
     public Move argmaxQValues(final Node node)
     {
         // TODO: implement me!
-        return null;
+        float max_Q_Value = Float.NEGATIVE_INFINITY;
+        
+
+        ArrayList<Integer> best_move_index = new ArrayList<>(); // because the node.get...legalmove is returning the list integer type so we need to dedfind an arraylist to store the index of move
+
+        // --------- state where the player is legal move card to play -----------
+        if (node.getNodeState() == Node.NodeState.HAS_LEGAL_MOVES) {
+            int numOfMove= node.getOrderedLegalMoves().size();
+
+            for (int i = 0; i < numOfMove; i++) {
+                float q_value = node.getQValue(i);
+
+                if (q_value > max_Q_Value) {
+                    max_Q_Value = q_value;
+                    best_move_index.clear(); // remove all element in the list
+                    best_move_index.add(i); // add the i to the list
+                }else if (q_value == max_Q_Value || (Float.isNaN(q_value) && Float.isNaN(max_Q_Value))){
+                    best_move_index.add(i);
+                }
+            }
+
+            if (best_move_index.isEmpty()) return null;
+
+            int Random_Qindex = best_move_index.get(this.getRandom().nextInt(best_move_index.size()));
+            Integer Index_card_in_hand = node.getOrderedLegalMoves().get(Random_Qindex);
+
+            Card Play_Card = node.getGameView().getHandView(node.getLogicalPlayerIdx()).getCard(Index_card_in_hand);
+            
+            // if is wild we play wild move else other move
+            if (Play_Card.isWild()) {
+                return Move.createMove(this, Index_card_in_hand, Color.getRandomColor(getRandom()));
+            } else {
+                return Move.createMove(this, Index_card_in_hand);
+            }
+
+        // ---------state where we as a player need to draw 1 card and must choose to play or not play it
+        }else if(node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
+            float q_value_play = node.getQValue(Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX);
+            float q_value_keep = node.getQValue(Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX);
+
+            int Index_draw_card = node.getGameView().getHandView(node.getLogicalPlayerIdx()).size();
+
+            if (q_value_play > q_value_keep) {
+                return Move.createMove(this, Index_draw_card);
+            }else if(q_value_keep > q_value_play){
+                return null; // null mean we are keeping the card
+            }else{
+                // if tie, than choose it randomly
+                if (this.getRandom().nextBoolean()) {
+                    return Move.createMove(this, Index_draw_card);
+                }else{
+                    return null; // return null we keep the card
+                }
+            }
+
+        // ----------state where we as a player get a card that can not be resolved, e.g draw more than 2 cards
+        }else if(node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT) {
+            return null; // we can not doing anyting about it but keep it
+        }
+        
+        return null; 
+        
     }
 }
