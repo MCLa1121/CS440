@@ -3,6 +3,7 @@ package src.pas.uno.agents;
 
 // SYSTEM IMPORTS
 import edu.bu.pas.uno.Card;
+import edu.bu.pas.uno.Game;
 import edu.bu.pas.uno.Game.GameView;
 import edu.bu.pas.uno.Hand.HandView;
 import edu.bu.pas.uno.agents.MCTSAgent;
@@ -12,6 +13,7 @@ import edu.bu.pas.uno.moves.Move;
 import edu.bu.pas.uno.tree.Node;
 
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Random;
 import java.util.Set;
 
@@ -36,7 +38,13 @@ public class UCTAgent
         @Override
         public Node getChild(final Move move)
         {
-            return null;
+            Game simulation = new Game(this.getGameView());
+            while (!simulation.isOver()) {
+                simulation.resolveMove(move);
+            }
+            int next_state = simulation.getPlayerOrder().getCurrentLogicalPlayerIdx();
+            MCTSNode mctsnode = new MCTSNode(simulation.getView(next_state), next_state, this);
+            return mctsnode;
         }
     }
 
@@ -45,6 +53,49 @@ public class UCTAgent
     {
         super(playerIdx, maxThinkingTimeInMS);
     }
+
+    // ---------------------------- PRIVATE HELPER ---------------------------------------------
+    // private helper -------------- help to make the choice to move
+    private Move choiceToMove(Node node, int index) {
+        // if can legally move
+        if (node.getNodeState() == Node.NodeState.HAS_LEGAL_MOVES) {
+            return wildMove(node.getGameView(),node.getLogicalPlayerIdx(), node.getOrderedLegalMoves().get(index));
+        
+        // if only aloowed to draw single card , play or keep 
+        } else if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
+            // if we can play the card
+            if (index == Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX) {
+                // -1 because we are in a index form
+                int draw_card_index = node.getGameView().getHandView(node.getLogicalPlayerIdx()).size() - 1;
+                return wildMove(node.getGameView(), node.getLogicalPlayerIdx(), draw_card_index);
+            }
+
+            return null; // keep the card if non of the move can be make
+
+        }
+
+        return null; // return null if we make the draw and do nothing
+    }
+
+    // private helper ------------- help to make the choic to move if we have wild card
+    private Move wildMove(GameView game, int player_index, int card_index) {
+        Card card_in_hand = game.getHandView(player_index).getCard(card_index);
+        if (card_in_hand.isWild()) {
+            return Move.createMove(this, card_index,Color.getRandomColor(getRandom()));
+        }
+        return Move.createMove(this, card_index);
+    }
+
+    // private helper -------------help to rollout
+
+    // private helper -------------help to backpropagate
+
+    // private helper getNumberOfchoices ------------ get the number of choice we can have
+
+    // private helper getBestUCB ----------- get the best ucb we can find
+
+
+    // -------------------------------------------------------------------------------------------
 
     /**
      * A method to perform the MCTS search on the game tree
@@ -61,28 +112,34 @@ public class UCTAgent
                        final Integer drawnCardIdx)
     {
         // TODO: implement me!
-        Node current = ;
+        MCTSNode root_node = new MCTSNode(game, getLogicalPlayerIdx(), null);
+        long Start_of_thinking_time = System.currentTimeMillis();
 
-        // if is current a leaf node
-        if (current.isTerminal()) {
+        //---------- while we still have budget to think keep loop running ----------
+        while (System.currentTimeMillis() - Start_of_thinking_time < this.getMaxThinkingTimeInMS()) {
+            Node current = root_node; 
 
-            if( the ni value is for current O) {
-                rollout;
-            }else{
-                for (Move act: current.getOrderedLegalMoves()) {
-                    add a new state to a tree;
-                    current = first new child node;
-                    if (si.isTerminal()) {
-                        
-                    }
-                }
-            }
+            // -- for backpropageation --
+            ArrayList<Node> node_path = new ArrayList<>();
+            ArrayList<Integer> action_path = new ArrayList<>();
+            node_path.add(current);
+
+            // ------------ selection ------------
+            // if not a leaf node keep running
+            while (!current.isTerminal()) {
+                int choices = ggt
+ }
+
+            // ------------expansion -------------
 
         }
-        current = current.getChild(null); // current = child node of current that maximize ucs1(si)
+
+        // ---------- simulation -------------
+        
+
+        // ---------- backpropagate ---------
 
 
-        return current;
     }
 
     /**
@@ -97,67 +154,69 @@ public class UCTAgent
     public Move argmaxQValues(final Node node)
     {
         // TODO: implement me!
-        float max_Q_Value = Float.NEGATIVE_INFINITY;
-        
+        float max_ucb = Float.NEGATIVE_INFINITY;
+        ArrayList<Integer> best_move_index = new ArrayList<>();
+        long sum_of_visits = node.getStateCount(); // the N in formlar 
 
-        ArrayList<Integer> best_move_index = new ArrayList<>(); // because the node.get...legalmove is returning the list integer type so we need to dedfind an arraylist to store the index of move
-
-        // --------- state where the player is legal move card to play -----------
+        // ----------- find how many choice do we have ---------
+        int num_of_choice = 0;
+        // if we have legal move
         if (node.getNodeState() == Node.NodeState.HAS_LEGAL_MOVES) {
-            int numOfMove= node.getOrderedLegalMoves().size();
+            num_of_choice = node.getOrderedLegalMoves().size();
+        
+        // if we do not have legal move and play drawn move
+        }else if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
+            num_of_choice = 2; // 1 for play 1 for keep in total there are 2 choice
 
-            for (int i = 0; i < numOfMove; i++) {
-                float q_value = node.getQValue(i);
-
-                if (q_value > max_Q_Value) {
-                    max_Q_Value = q_value;
-                    best_move_index.clear(); // remove all element in the list
-                    best_move_index.add(i); // add the i to the list
-                }else if (q_value == max_Q_Value || (Float.isNaN(q_value) && Float.isNaN(max_Q_Value))){
-                    best_move_index.add(i);
-                }
-            }
-
-            if (best_move_index.isEmpty()) return null;
-
-            int Random_Qindex = best_move_index.get(this.getRandom().nextInt(best_move_index.size()));
-            Integer Index_card_in_hand = node.getOrderedLegalMoves().get(Random_Qindex);
-
-            Card Play_Card = node.getGameView().getHandView(node.getLogicalPlayerIdx()).getCard(Index_card_in_hand);
-            
-            // if is wild we play wild move else other move
-            if (Play_Card.isWild()) {
-                return Move.createMove(this, Index_card_in_hand, Color.getRandomColor(getRandom()));
-            } else {
-                return Move.createMove(this, Index_card_in_hand);
-            }
-
-        // ---------state where we as a player need to draw 1 card and must choose to play or not play it
-        }else if(node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
-            float q_value_play = node.getQValue(Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX);
-            float q_value_keep = node.getQValue(Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX);
-
-            int Index_draw_card = node.getGameView().getHandView(node.getLogicalPlayerIdx()).size();
-
-            if (q_value_play > q_value_keep) {
-                return Move.createMove(this, Index_draw_card);
-            }else if(q_value_keep > q_value_play){
-                return null; // null mean we are keeping the card
-            }else{
-                // if tie, than choose it randomly
-                if (this.getRandom().nextBoolean()) {
-                    return Move.createMove(this, Index_draw_card);
-                }else{
-                    return null; // return null we keep the card
-                }
-            }
-
-        // ----------state where we as a player get a card that can not be resolved, e.g draw more than 2 cards
-        }else if(node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT) {
-            return null; // we can not doing anyting about it but keep it
+        }else{
+            num_of_choice = 1; // if cannot play it , the reamin choice is to draw it, and that become the only one choice
         }
+
+        //-----------calculate ucb for each state(move) index
+        for (int i = 0; i < num_of_choice; i++) {
+            long move_visit_counter = node.getQCount(i); // in each node we have a counter for visit time (each node has it unique and the root node will have the sum)
+            float value;
+
+            // if zero mean we have not visit it before and it haa a value that is +infinity 
+            if (move_visit_counter == 0) {
+                value = Float.POSITIVE_INFINITY;
+            }else{
+                float Q_value =node.getQValue(i);
+
+                // use the ucb formular
+                double explore = Math.sqrt(2.0) * Math.sqrt(Math.log(sum_of_visits) / (double)move_visit_counter );
+                value = Q_value + (float)explore;
+            }
+
+            if (value > max_ucb) {
+                max_ucb = value; // the bigger the better update max ucb
+                best_move_index.clear(); // empty the element in the list
+                best_move_index.add(i); // add the index of max ucb
+            }
+        }
+
+        int card_index_chose = best_move_index.get(this.getRandom().nextInt(best_move_index.size()));
+        Card card_in_hand = node.getGameView().getHandView(node.getLogicalPlayerIdx()).getCard(card_index_chose);
         
-        return null; 
-        
+        // ----------if can legally make a move
+        if (node.getNodeState() == Node.NodeState.HAS_LEGAL_MOVES) {
+            // whether has wild card in hand
+            if (card_in_hand.isWild()) {
+                return Move.createMove(this,card_index_chose,Color.getRandomColor(getRandom())); // pick a randome color
+            }
+            return Move.createMove(this, card_index_chose); // if not wild make the move ues card index chose
+
+        // ----------if node cannot make legal move but may play draw card
+        }else if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
+            if (card_index_chose == Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX) {
+                int draw_card_index = node.getOrderedLegalMoves().get(card_index_chose); // get draw card index
+                // if has card wild
+                if (card_in_hand.isWild()) {
+                    return Move.createMove(this, draw_card_index,Color.getRandomColor(getRandom()));
+                }
+                return Move.createMove(this, draw_card_index);
+            }
+        }
+        return null; // we keep the card that we draw
     }
 }
