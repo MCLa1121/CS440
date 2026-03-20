@@ -16,13 +16,14 @@ import java.util.Set;
 
 
 // JAVA PROJECT IMPORTS
-
+import edu.bu.pas.uno.Game;
 
 public class ExpectedOutcomeAgent
     extends MCTSAgent
 {
     //add a new field for argmax to solve a drawn card case
     private Integer DrawnIDx = null;
+    
     public static class MCTSNode
         extends Node
     {
@@ -36,6 +37,8 @@ public class ExpectedOutcomeAgent
         @Override
         public Node getChild(final Move move)
         {
+            //create a copy so we dont make change to the parent
+            Game nextGame = new Game(this.getGameView());
             return null;
         }
     }
@@ -198,7 +201,7 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
             if(this.DrawnIDx == null){
                 return null;
             }
-            return 
+            return makeMoveFromCardIdx(node.getGameView(), this.DrawnIDx);
         }
         return null;
     }
