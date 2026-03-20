@@ -72,7 +72,7 @@ public class ExpectedOutcomeAgent
         */
         return null;
     }
-    
+
     //adding a helper to find how many wild card we have in hand
     private Color chooseBestWildColor(final HandView hand){
         int red = 0;
@@ -120,6 +120,24 @@ public class ExpectedOutcomeAgent
     }
 
     return best;
+}
+//a helper method to make move for the argMax 
+private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
+    HandView hand = game.getHandView(this.getLogicalPlayerIdx());
+    Card card = hand.getCard(cardIdx);
+
+    if(card == null){
+        return null;
+    }
+    //if the card is a wild card 
+    if(card.isWild()){
+        //choose a best color 
+        Color chosenColor = chooseBestWildColor(hand);
+        //use the current agent object as the player making the move
+        return Move.createMove(this, cardIdx, chosenColor);
+    }
+
+    return Move.createMove(this, cardIdx);
 }
     
     /**
