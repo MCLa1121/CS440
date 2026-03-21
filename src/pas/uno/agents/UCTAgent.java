@@ -145,6 +145,27 @@ public class UCTAgent
     }
 
     // private helper -------------help to backpropagate
+    private void backpropagate(ArrayList<Node> node_path, ArrayList<Integer> move_path, float q_value) {
+        for (int i = 0; i < move_path.size(); i++) {
+            // get the parent of this node path
+            Node parent = node_path.get(i);
+            
+            // get the move that we choose
+            int move_that_choose = move_path.get(i);
+
+            // return the current visit time
+            long current_count = parent.getQCount(move_that_choose);
+            
+            // return the current total of q value overall nodes (based on the current move that we choose)
+            float Total_q_value = parent.getQValueTotal(move_that_choose);
+
+            // update N(s,a) +=1 (base on current move)
+            parent.setQCount(move_that_choose, current_count + 1);
+
+            // update q value in total (base on current move)
+            parent.setQValueTotal(move_that_choose, Total_q_value + q_value);
+        }
+    }
 
     // private helper getNumberOfchoices ------------ get the number of choice we can have
     private int getNumberOfChoices(Node node) {
