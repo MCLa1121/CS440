@@ -35,6 +35,7 @@ public class UCTAgent
             super(game, logicalPlayerIdx, parent);
         }
 
+        // getChild method: return a mctsnode
         @Override
         public Node getChild(final Move move)
         {
@@ -54,7 +55,7 @@ public class UCTAgent
         super(playerIdx, maxThinkingTimeInMS);
     }
 
-    // ---------------------------- PRIVATE HELPER ---------------------------------------------
+    // ---------------------------- PRIVATE HELPER -------------------------------------------------------------------------------------------------------------------------
     // private helper -------------- help to make the choice to move
     private Move choiceToMove(Node node, int index) {
         // if can legally move
@@ -91,11 +92,24 @@ public class UCTAgent
     // private helper -------------help to backpropagate
 
     // private helper getNumberOfchoices ------------ get the number of choice we can have
+    private int getNumberOfChoices(Node node) {
+        // if it has legal move, return the size of the orderedlegal move which is our choices
+        if (node.getNodeState() == Node.NodeState.HAS_LEGAL_MOVES) {
+            return node.getOrderedLegalMoves().size();
+
+        // if we only have a move that we may be able to play a card or keep a card (in total 2 choices)
+        } else if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
+            return 2; 
+        }
+
+        // return one becaue only choice is to keep the card and do noting.
+        return 1; 
+    }
 
     // private helper getBestUCB ----------- get the best ucb we can find
 
 
-    // -------------------------------------------------------------------------------------------
+    // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /**
      * A method to perform the MCTS search on the game tree
