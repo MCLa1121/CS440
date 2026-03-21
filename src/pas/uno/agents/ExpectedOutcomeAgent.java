@@ -17,14 +17,24 @@ import java.util.Set;
 // JAVA PROJECT IMPORTS
 import edu.bu.pas.uno.Game;
 import edu.bu.pas.uno.Hand;
-import edu.bu.pas.uno.agents.*;;
+import edu.bu.pas.uno.agents.*;
+import java.util.ArrayList;
+import java.util.List;
 
 public class ExpectedOutcomeAgent
     extends MCTSAgent
 {
-    //add a new field for argmax to solve a drawn card case
+    //add a new field to solve a drawn card case
+    //Remember the drawn card index from this search, so can use it later.
     private Integer DrawnIDx = null;
     
+    //testing perpose
+    // how deep to expand the explicit tree before doing a rollout
+    private static final int ARTIFICIAL_LEAF_DEPTH = 3;
+
+    // how many rollouts to do
+    private static final int NUM_ITERATIONS = 200;
+
     public static class MCTSNode
         extends Node
     {
@@ -122,6 +132,14 @@ public class ExpectedOutcomeAgent
         6.keep doing it until we reach the terminal state, rollout
         7.after find the value, backpropogation 
         */
+       //first set the root node, the node that do not have a parent
+       MCTSNode root = new MCTSNode(game, getLogicalPlayerIdx(), null);
+       for(int i = 0; i < NUM_ITERATIONS; i++){
+        Node current = root;
+        //store the path so we can do the backpropogation 
+        List<Node> pathNode = new ArrayList<Node>();
+        List<Integer> pathMoveIdxs = new ArrayList<Integer>();
+       }
         return null;
     }
 
