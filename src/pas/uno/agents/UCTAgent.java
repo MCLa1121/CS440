@@ -107,7 +107,57 @@ public class UCTAgent
     }
 
     // private helper getBestUCB ----------- get the best ucb we can find
+    private int getBestUCB(Node node) {
+        // set the best ucb value to neagive infinity (we are going to have the maximum ucb, the bigger the better)
+        float best_ucb = Float.NEGATIVE_INFINITY;
 
+        // create an array list to store the best ucb index in there
+        ArrayList<Integer> best_ucb_index = new ArrayList<>();
+
+        // totoal count of all visit time with all nodes's vists times
+        long total_count = node.getStateCount();
+
+        // get the number of choice that we have
+        int num_of_choice = getNumberOfChoices(node);
+        
+        for (int i = 0; i < num_of_choice; i++) {
+            // set a counter to get Q count number (eaiser explantation: counter for visit time for the current node)
+            long counter = node.getQCount(i);
+            // initiazlie the ubc value as float
+            float UCB_Value; 
+
+            // if the counter is 0, meaning never visit before set the ucb value to +infinty
+            if (counter == 0) {
+                UCB_Value = Float.POSITIVE_INFINITY;
+            } else {
+                // get the q value of the node
+                float q_value = node.getQValue(i);
+
+                // there we are using the ucb rule; implement the formular
+                double explore = Math.sqrt(2) * Math.sqrt(Math.log(total_count) / (double) counter);
+
+                // implementing ucb
+                UCB_Value =  q_value + (float)explore;
+            }
+
+            // if the ucb value just calculate is better than the max ucb value we update the best ucb
+            if (UCB_Value > best_ucb) {
+                // update the best ucb value
+                best_ucb = UCB_Value;
+
+                // empty the current list and add the current i to the list
+                best_ucb_index.clear();
+                best_ucb_index.add(i);
+
+            // if ucb value is equal to the best ucb value then just add this current in to the list
+            } else if (UCB_Value == best_ucb) {
+                best_ucb_index.add(i);
+            }
+        }
+
+        // reuturn the best ucb_index that we randomly pick in the array list
+        return best_ucb_index.get(this.getRandom().nextInt(best_ucb_index.size()));
+    }
 
     // ----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
