@@ -5,6 +5,7 @@ package src.pas.uno.agents;
 import edu.bu.pas.uno.Card;
 import edu.bu.pas.uno.Game;
 import edu.bu.pas.uno.Game.GameView;
+import edu.bu.pas.uno.Hand;
 import edu.bu.pas.uno.Hand.HandView;
 import edu.bu.pas.uno.agents.MCTSAgent;
 import edu.bu.pas.uno.enums.Color;
@@ -88,6 +89,60 @@ public class UCTAgent
     }
 
     // private helper -------------help to rollout
+    private float rollout(GameView gameview) {
+        // set a simulation game
+        Game simulation_game = new Game(gameview);
+
+        // while the game is not over keep playing
+        while (!simulation_game.isOver()) {
+            // get the current player index, and get the current card in hand, and set move to null
+            int current_player_index = simulation_game.getPlayerOrder().getCurrentLogicalPlayerIdx();
+            Hand current_card_hand = simulation_game.getHand(current_player_index);
+            Move move = null;
+
+
+            // if the current card in hand can move legally
+            if (current_card_hand.hasLegalMoves(simulation_game)) {
+                // store all legal move in the array list
+                ArrayList<Integer> legal_moves = new ArrayList<>(current_card_hand.getLegalMoves(simulation_game));
+                // pick a radom card base on the legal move we can make 
+                int Pick_random_card = legal_moves.get(this.getRandom().nextInt(legal_moves.size()));
+                // call wild move to return a move if we have wild card
+                move = wildMove(gameview, current_player_index, Pick_random_card);
+            
+            
+            } else if (simulation_game.getUnresolvedCards().isEmpty()) {
+                // we draw one card an and need to deside whether to keep it or play it
+                // we draw a card and get the index of the draw card
+                int draw_card_index = simulation_game.drawCard(current_card_hand);
+                // get the draw card by using the draw card index (the exact card)
+                Card draw_card = current_card_hand.getCard(draw_card_index);
+
+                // if the drawn card are legal to pley
+                if (draw_card.canBePlayedAsDrawCard(simulation_game)) {
+                    move = wildMove(gameview, current_player_index, draw_card_index);
+                }
+            
+            // otherwise we need to draw the card and add the total draw card to the with the unreaoved card that have in total
+            } else {
+                simulation_game.drawTotal(current_card_hand, simulation_game.getUnresolvedCards().total());;
+            }
+
+            // if the move is null then call resovlved move to move to the next turn
+            simulation_game.resolveMove(move);
+        }
+
+        // ------------ Win OR Lose --------
+        // if we have play all of the card in our hand (0 card in hand)
+        if (simulation_game.getHand(this.getLogicalPlayerIdx()).size() == 0) {
+            // win + 1
+            return 1.0f;
+
+        } else {
+            // lose -1
+            return -1.0f;
+        }
+    }
 
     // private helper -------------help to backpropagate
 
@@ -106,7 +161,7 @@ public class UCTAgent
         return 1; 
     }
 
-    // private helper getBestUCB ----------- get the best ucb we can find
+    // private helper getBestUCB ----------- get the best ucb we can find (note its retuning the index)
     private int getBestUCB(Node node) {
         // set the best ucb value to neagive infinity (we are going to have the maximum ucb, the bigger the better)
         float best_ucb = Float.NEGATIVE_INFINITY;
