@@ -150,6 +150,7 @@ public class ExpectedOutcomeAgent
         if(state == Node.NodeState.HAS_LEGAL_MOVES){
             //evaluate each move once
         }
+        return null;
     }
     
     private float heuristic(final Node node) {
