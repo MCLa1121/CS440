@@ -244,7 +244,7 @@ public class ExpectedOutcomeAgent
         Agent tempAgent = tempAgent(node);
         //if the node is the root node, we just use that value 
         if(node.getDepth() == 0 && DrawnIDx != null){
-            HandView hand = node.getGameView().getHandView(nod,getLogicalPlayerIdx());
+            HandView hand = node.getGameView().getHandView(node.getLogicalPlayerIdx());
             if(this.DrawnIDx >= 0 && this.DrawnIDx != null){
                 Card drawnCard = hand.getCard(this.DrawnIDx);
                 if(drawnCard.isWild()){
