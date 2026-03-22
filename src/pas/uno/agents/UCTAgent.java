@@ -40,11 +40,15 @@ public class UCTAgent
         @Override
         public Node getChild(final Move move)
         {
+            // set up a simulation 
             Game simulation = new Game(this.getGameView());
-            while (!simulation.isOver()) {
-                simulation.resolveMove(move);
-            }
+            // resolved move apply one time (if use a while loop here the agent will do noting)
+            simulation.resolveMove(move);
+
+            // get the next state of the simulatoin (the current player index)
             int next_state = simulation.getPlayerOrder().getCurrentLogicalPlayerIdx();
+
+            // return a mctsnode after we get the next state 
             MCTSNode mctsnode = new MCTSNode(simulation.getView(next_state), next_state, this);
             return mctsnode;
         }
@@ -405,3 +409,5 @@ public class UCTAgent
 
 
 // javac -cp "./lib/*;." @uno.srcs
+// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain src.pas.uno.agents.UCTAgent src.pas.uno.agents.UCTAgent 
+// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UCTAgent 
