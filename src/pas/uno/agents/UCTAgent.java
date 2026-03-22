@@ -109,10 +109,10 @@ public class UCTAgent
             if (current_card_hand.hasLegalMoves(simulation_game)) {
                 // store all legal move in the array list
                 ArrayList<Integer> legal_moves = new ArrayList<>(current_card_hand.getLegalMoves(simulation_game));
-                // pick a radom card base on the legal move we can make 
+                // pick a random card base on the legal move we can make 
                 int Pick_random_card = legal_moves.get(this.getRandom().nextInt(legal_moves.size()));
                 // call wild move to return a move if we have wild card
-                move = wildMove(gameview, current_player_index, Pick_random_card);
+                move = wildMove(simulation_game.getView(current_player_index), current_player_index, Pick_random_card);
             
             
             } else if (simulation_game.getUnresolvedCards().isEmpty()) {
@@ -124,7 +124,7 @@ public class UCTAgent
 
                 // if the drawn card are legal to pley
                 if (draw_card.canBePlayedAsDrawCard(simulation_game)) {
-                    move = wildMove(gameview, current_player_index, draw_card_index);
+                    move = wildMove(simulation_game.getView(current_player_index), current_player_index, draw_card_index);
                 }
             
             // otherwise we need to draw the card and add the total draw card to the with the unreaoved card that have in total
