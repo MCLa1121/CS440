@@ -30,10 +30,12 @@ public class ExpectedOutcomeAgent
     
     //testing perpose
     // how deep to expand the explicit tree before doing a rollout
-    private static final int ARTIFICIAL_LEAF_DEPTH = 3;
+    private static final int ARTIFICIAL_LEAF_DEPTH = 1;
 
     // how many rollouts to do
-    private static final int NUM_ITERATIONS = 200;
+    //private static final int NUM_ITERATIONS = 200;
+    private static final int ROLLOUT = 2;
+    private long searchDeadlineMS;
 
     public static class MCTSNode
         extends Node
@@ -119,7 +121,6 @@ public class ExpectedOutcomeAgent
      * @return  The {@link Node} of the root who'se q-values should now be populated and ready to argmax
      */
 
-    private static final int ROLLOUT = 20;
     @Override
     public Node search(final GameView game,
                        final Integer drawnCardIdx)
@@ -134,21 +135,21 @@ public class ExpectedOutcomeAgent
         6.keep doing it until we reach the terminal state, rollout
         7.after find the value, backpropogation 
         */
-       //first set the root node, the node that do not have a parent
-       MCTSNode root = new MCTSNode(game, getLogicalPlayerIdx(), null);
-       for(int i = 0; i < NUM_ITERATIONS; i++){
-        Node current = root;
-        //store the path so we can do the backpropogation 
-        List<Node> pathNode = new ArrayList<Node>();
-        List<Integer> pathMoveIdxs = new ArrayList<Integer>();
-        //At the beginning of the path, the root may have a known drawn card. Keep track of it for the root decision.
-        Integer currentIdx = drawnCardIdx;
-        //run until we reach the leaf node or artificial leaf node 
-        while(!current.isTerminal() && current.getDepth() < ARTIFICIAL_LEAF_DEPTH){
-            
+        //if we start form the root, save the drawn card index
+        //used for the later helper method 
+        this.DrawnIDx = drawnCardIdx; 
+        //first set the root node, the node that do not have a parent
+        MCTSNode root = new MCTSNode(game, game.getPlayerOrder().getCurrentLogicalPlayerIdx(), null);
+        long timelimit = this.getMaxThinkingTimeInMS() - 30;
+        if(timelimit < 1){
+            timelimit = 1;
         }
-       }
-        return null;
+        this.searchDeadlineMS = System.currentTimeMillis() + timelimit;
+
+        //find the q value by recursively evaluate the tree from the node
+        evaluate(root);
+        //maintain the root node with the value
+        return root;
     }
 
     //add a helper method that do the node evaluating 
@@ -157,15 +158,27 @@ public class ExpectedOutcomeAgent
             //if we reach the terminal, call the helper methos get the value
             return reachterminal(node.getGameView());
         }
+        //add another time check 
+        if(System.currentTimeMillis() >= this.searchDeadlineMS){
+            return simulation(node.getGameView());
+        }
         //if we reach the non terminal leaf node
         //estimate the node value
         if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
             //if we reach the non terminal leaf
             float total = 0; 
+            int count = 0;
             for(int i = 0; i < ROLLOUT; i++){
-                total += simulation(node.getGameView());
+                if(System.currentTimeMillis() >= this.searchDeadlineMS){
+                    break;
             }
-            return total / ROLLOUT;  
+                total += simulation(node.getGameView());
+                count++;
+            }
+            if(count == 0){
+                return simulation(node.getGameView());
+        }
+            return total / count;  
         }
         Node.NodeState state = node.getNodeState();
 
@@ -173,6 +186,9 @@ public class ExpectedOutcomeAgent
         if(state  == Node.NodeState.HAS_LEGAL_MOVES){
             //find all the action in this node
             for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
+                if(System.currentTimeMillis() >= this.searchDeadlineMS){
+                    break;
+                }
                 int cardIdx = node.getOrderedLegalMoves().get(moveIdx);
                 //get the actual move
                 Move move = makeMove(node, cardIdx);
@@ -210,15 +226,35 @@ public class ExpectedOutcomeAgent
         int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
         int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
 
-        //if we want to keep the cad 
-        Node keep = node.getChild(null);
-        float keepValue = evaluate(keep);
-        node.setQValueTotal(keepIdx, keepValue);
-        node.setQCount(keepIdx, 1);
+        // //if we want to keep the cad 
+        // Node keep = node.getChild(null);
+        // float keepValue = evaluate(keep);
+        // node.setQValueTotal(keepIdx, keepValue);
+        // node.setQCount(keepIdx, 1);
         
         // //if we want to plat the card 
-        // Move play = node.getChild(null)
-        
+        // Move playDrawn = DrawnMove(node);
+        // Node play = node.getChild(playDrawn);
+        // float value = evaluate(play);
+        // node.setQValueTotal(playIdx, value);
+        // node.setQCount(playIdx, 1);
+        if(System.currentTimeMillis() < this.searchDeadlineMS){
+            Node keep = node.getChild(null);
+            float keepValue = evaluate(keep);
+            node.setQValueTotal(keepIdx, keepValue);
+            node.setQCount(keepIdx, 1);
+        }
+
+        if(System.currentTimeMillis() < this.searchDeadlineMS){
+        Move playDrawn = DrawnMove(node);
+        if(playDrawn != null){
+            Node play = node.getChild(playDrawn);
+            float value = evaluate(play);
+            node.setQValueTotal(playIdx, value);
+            node.setQCount(playIdx, 1);
+        }
+    }
+        return node.getUtilityValues();
     }
 
     //a helper method that make a move
@@ -244,7 +280,7 @@ public class ExpectedOutcomeAgent
         Agent tempAgent = tempAgent(node);
         //if the node is the root node, we just use that value 
         if(node.getDepth() == 0 && DrawnIDx != null){
-            HandView hand = node.getGameView().getHandView(nod,getLogicalPlayerIdx());
+            HandView hand = node.getGameView().getHandView(node.getLogicalPlayerIdx());
             if(this.DrawnIDx >= 0 && this.DrawnIDx != null){
                 Card drawnCard = hand.getCard(this.DrawnIDx);
                 if(drawnCard.isWild()){
@@ -254,7 +290,7 @@ public class ExpectedOutcomeAgent
                 return Move.createMove(tempAgent, this.DrawnIDx);
             }
         }
-        return Move.createMove(tempAgent, 0, Color.RED);
+        return null;
     }
     //we need to create a fake agent for the copied game
     //so that when ever we need to have a simulation game, we can call it
@@ -297,9 +333,10 @@ public class ExpectedOutcomeAgent
     private float simulation(final GameView view){
         //make a copy for a game for us to simulate the game
         Game simu = new Game(view, dummy(view));
-
+        int steps = 0;
         //stop until the game end
-        while(!simu.isOver()){
+        while(!simu.isOver() && steps < 150){
+            steps++;
             //a basic setup for a game 
             Hand hand = simu.getCurrentPlayerHand();
             Agent curAgent = simu.getCurrentAgent();
@@ -307,9 +344,17 @@ public class ExpectedOutcomeAgent
             //when the plyer have a legal move
             if(hand.hasLegalMoves(simu)){
                 //matain all the moves
-                List<Integer> legalMove = new ArrayList<Integer>(hand.getLegalMoves(simu));
-                //pick one card
-                int chooseCardIdx = legalMove.get(this.getRandom().nextInt(legalMove.size()));
+                Set<Integer> legalMove = hand.getLegalMoves(simu);
+                int target = this.getRandom().nextInt(legalMove.size());
+                int chooseCardIdx = -1;
+                int seen = 0;
+                for(Integer idx : legalMove){
+                    if(seen == target){
+                    chooseCardIdx = idx;
+                    break;
+                }
+                    seen++;
+                }
                 Card chosenCard = hand.getCard(chooseCardIdx);
                 //check whether the card is a wild card or not
                 if(chosenCard.isWild()){
@@ -343,8 +388,33 @@ public class ExpectedOutcomeAgent
             //apply action
             simu.resolveMove(move);
         }
-        //return the terminal value
-        return reachterminal(simu.getOmniscientView());
+        // //return the terminal value
+        // return reachterminal(simu.getOmniscientView());
+        if(simu.isOver()){
+            return reachterminal(simu.getOmniscientView());
+        }
+
+        int myIdx = simu.getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
+        int myCards = simu.getHand(myIdx).size();
+
+        int bestOther = Integer.MAX_VALUE;
+        for(int i = 0; i < simu.getNumPlayers(); i++){
+            if(i == myIdx){
+            continue;
+        }
+            int otherCards = simu.getHand(i).size();
+        if(otherCards < bestOther){
+            bestOther = otherCards;
+        }
+    }
+
+        if(myCards < bestOther){
+            return 1.0f;
+        }else if(myCards == bestOther){
+            return 0.5f;
+        }else{
+            return 0.0f;
+        }
     }
     //a helper method that run if we reach a terminal node 
     private float reachterminal(final GameView game){
@@ -468,7 +538,7 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
                 //since we dont want to comput Q value by dividing 0
                 keepQ = Float.NEGATIVE_INFINITY;//avoid this move it 0
             }else{
-                keepQ = node.getQValue(playIdx);
+                keepQ = node.getQValue(keepIdx);
             }
 
             //now check which value is bigger
@@ -482,6 +552,30 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
             }
             return makeMoveFromCardIdx(node.getGameView(), this.DrawnIDx);
         }
-        return null;
+        
+        //if we have the legal move
+        int bestMoveIdx = -1;
+        float beatQ = Float.NEGATIVE_INFINITY;
+
+        for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
+            //since it is not divided by 0 
+            if(node.getQCount(moveIdx) == 0){
+                continue;
+            }
+            float q = node.getQValue(moveIdx);
+            if(bestMoveIdx == -1 || q > beatQ){
+                bestMoveIdx = moveIdx;
+                beatQ = q;
+            }
+        }
+        //if we reach the move for the first time
+        if(bestMoveIdx == -1){
+            bestMoveIdx = 0;
+        }
+        //get the real card index from the q value
+        int cardIdx = node.getOrderedLegalMoves().get(bestMoveIdx);
+        return makeMoveFromCardIdx(node.getGameView(), cardIdx);
     }
+    //javac -cp "./lib/*;." @uno.srcs
+    //java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain src.pas.uno.agents.ExpectedOutcomeAgent edu.bu.pas.uno.agents.RandomAgent
 }
