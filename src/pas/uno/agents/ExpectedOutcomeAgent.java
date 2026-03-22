@@ -150,6 +150,7 @@ public class ExpectedOutcomeAgent
        }
         return null;
     }
+    
     //add a helper method that do the node evaluating 
     private float evaluate(final Node node){
         if(node.isTerminal()){
@@ -174,10 +175,23 @@ public class ExpectedOutcomeAgent
             for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
                 int cardIdx = node.getOrderedLegalMoves().get(moveIdx);
                 //get the actual move
-                
+                Move move = makeMove(node, cardIdx);
+                //the child after we finish this move
+                Node child = node.getChild(move);
+                //get the value by recursive evaluate the children 
+                float childValue = evaluate(child);
+
+                //set the Q value after we get the chidren value
+                node.setQValueTotal(moveIdx, childValue);
+                //set the counter to 1 since we have gp over all the children once
+                node.setQCount(moveIdx, 1);
             }
         }
+        //matain the utility valu 
+        return node.getUtilityValues();
+        //evaluate finish
     }
+
     //a helper method that make a move
     private Move makeMove (final Node node, final int cardIdx){
         //check what the current player have in hand reaching a node
