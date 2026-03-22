@@ -150,24 +150,112 @@ public class ExpectedOutcomeAgent
        }
         return null;
     }
+
     //add a helper method that do the node evaluating 
-    // private float evaluate(final Node node){
-    //     if(node.isTerminal()){
-    //         //if we reach the terminal, call the helper methos get the value
-    //         return reachterminal(node.getGameView());
-    //     }
+    private float evaluate(final Node node){
+        if(node.isTerminal()){
+            //if we reach the terminal, call the helper methos get the value
+            return reachterminal(node.getGameView());
+        }
+        //if we reach the non terminal leaf node
+        //estimate the node value
+        if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
+            //if we reach the non terminal leaf
+            float total = 0; 
+            for(int i = 0; i < ROLLOUT; i++){
+                total += simulation(node.getGameView());
+            }
+            return total / ROLLOUT;  
+        }
+        Node.NodeState state = node.getNodeState();
 
-    //     if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
-    //         //if we reach the non terminal leaf
-    //         float total = 0; 
-    //         for(int i = 0; i < ROLLOUT; i++){
-    //             total += simulation(node.getGameView());
-    //         }
-    //         return total / ROLLOUT;  
-    //     }
-    //     Node.NodeState state = node.getNodeState();
-    // }
+        //case where the player have a legal move
+        if(state  == Node.NodeState.HAS_LEGAL_MOVES){
+            //find all the action in this node
+            for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
+                int cardIdx = node.getOrderedLegalMoves().get(moveIdx);
+                //get the actual move
+                Move move = makeMove(node, cardIdx);
+                //the child after we finish this move
+                Node child = node.getChild(move);
+                //get the value by recursive evaluate the children 
+                float childValue = evaluate(child);
 
+                //set the Q value after we get the chidren value
+                node.setQValueTotal(moveIdx, childValue);
+                //set the counter to 1 since we have gp over all the children once
+                node.setQCount(moveIdx, 1);
+            }
+            //matain the utility valu 
+            return node.getUtilityValues();
+        }
+        
+        //no legal move, unresolved draw cards exists 
+        if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
+            //only one action we can take
+            int moveIdx = Node.NoLegalMovesIdxDefaults.DrawUnresolvedCardsIdxs.MOVE_IDX;
+            //get the child and get its value
+            Node child = node.getChild(null);
+            float childValue = evaluate(child);
+            //set the Q value after we get the chidren value
+            node.setQValueTotal(moveIdx, childValue);
+            //set the counter to 1 since we have gp over all the children once
+            node.setQCount(moveIdx, 1);
+            return node.getUtilityValues();
+        }
+
+        //no legal moves, draw one card, play or keep it 
+        //if we have 0, play it
+        //one keep it
+        int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
+        int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
+
+        //if we want to keep the cad 
+        Node keep = node.getChild(null);
+        float keepValue = evaluate(keep);
+        node.setQValueTotal(keepIdx, keepValue);
+        node.setQCount(keepIdx, 1);
+        
+        // //if we want to plat the card 
+        // Move play = node.getChild(null)
+        
+    }
+
+    //a helper method that make a move
+    private Move makeMove (final Node node, final int cardIdx){
+        //check what the current player have in hand reaching a node
+        HandView hand = node.getGameView().getHandView(node.getLogicalPlayerIdx());
+        Card card = hand.getCard(cardIdx);
+
+        //built a tempAgent for this player 
+        Agent tempAgent = tempAgent(node);
+        //if have a wild card, choose a color
+        if(card.isWild()){
+            Color chosenColor = chooseBestWildColor(hand);
+            return Move.createMove(tempAgent, cardIdx, chosenColor);
+        }
+        //not wild card 
+        return Move.createMove(tempAgent, cardIdx);
+    }
+
+    //a helper method for a player want to play the drawn card
+    private Move DrawnMove(final Node node){
+        //make a temp agent for the player who is playing this turn 
+        Agent tempAgent = tempAgent(node);
+        //if the node is the root node, we just use that value 
+        if(node.getDepth() == 0 && DrawnIDx != null){
+            HandView hand = node.getGameView().getHandView(nod,getLogicalPlayerIdx());
+            if(this.DrawnIDx >= 0 && this.DrawnIDx != null){
+                Card drawnCard = hand.getCard(this.DrawnIDx);
+                if(drawnCard.isWild()){
+                    Color choseColor = chooseBestWildColor( hand);
+                    return Move.createMove(tempAgent, this.DrawnIDx, choseColor);
+                }
+                return Move.createMove(tempAgent, this.DrawnIDx);
+            }
+        }
+        return Move.createMove(tempAgent, 0, Color.RED);
+    }
     //we need to create a fake agent for the copied game
     //so that when ever we need to have a simulation game, we can call it
     private static Agent[] dummy(final GameView view){
@@ -187,10 +275,77 @@ public class ExpectedOutcomeAgent
         }
         return agents;
     }
+    //make a temp agent for a node
+    private Agent tempAgent(final Node node){
+        //find which player is acting now
+        final int cuerrentIdx = node.getLogicalPlayerIdx();
+        //change the index to a real inded
+        final int playerIdx = node.getGameView().getPlayerOrder().getAgentIdx(cuerrentIdx);
+        Agent temp = new Agent(playerIdx, 0){
+            public Move chooseCardToPlay(final GameView game){
+                return null;
+            }
+            public Move maybePlayDrawnCard(final GameView game, final int drawnCardIdx){
+                return null;
+            }
+        };
+        temp.setLogicalPlayerIdx(cuerrentIdx);
+        return temp;
+    }
+
     // //add a helper method to do the ramdomness play 
-    // private float simulation(final GameView view){
-    //     Game simu = new Game(view);
-    // }
+    private float simulation(final GameView view){
+        //make a copy for a game for us to simulate the game
+        Game simu = new Game(view, dummy(view));
+
+        //stop until the game end
+        while(!simu.isOver()){
+            //a basic setup for a game 
+            Hand hand = simu.getCurrentPlayerHand();
+            Agent curAgent = simu.getCurrentAgent();
+            Move move = null;
+            //when the plyer have a legal move
+            if(hand.hasLegalMoves(simu)){
+                //matain all the moves
+                List<Integer> legalMove = new ArrayList<Integer>(hand.getLegalMoves(simu));
+                //pick one card
+                int chooseCardIdx = legalMove.get(this.getRandom().nextInt(legalMove.size()));
+                Card chosenCard = hand.getCard(chooseCardIdx);
+                //check whether the card is a wild card or not
+                if(chosenCard.isWild()){
+                    Color chosenColor = Color.getRandomColor(getRandom());
+                    move = Move.createMove(curAgent, chooseCardIdx,chosenColor);
+                }else{
+                    //if it is not we create a move with no color
+                    move = Move.createMove(curAgent, chooseCardIdx);
+                }
+            }//if no legal move, but still unresolved draw pile, draw 1 card
+            else if(simu.getUnresolvedCards().isEmpty()){
+                int drawnIdx = simu.drawCard(hand);
+                Card drawnCard = hand.getCard(drawnIdx);
+                //if the card can be played, we play it 
+                if(drawnCard.canBePlayedAsDrawCard(simu)){
+                    boolean canPlay = getRandom().nextBoolean();
+                    if(canPlay){
+                        if(drawnCard.isWild()){
+                            Color chosenColor = Color.getRandomColor(getRandom());
+                            move = Move.createMove(curAgent, drawnIdx, chosenColor);
+                        }else{
+                            move = Move.createMove(curAgent, drawnIdx);
+                        }
+                    }
+                }
+            }else{
+                //draw the whole unresolved 
+                simu.drawTotal(hand, simu.getUnresolvedCards().total());
+            }
+
+            //apply action
+            simu.resolveMove(move);
+        }
+        //return the terminal value
+        return reachterminal(simu.getOmniscientView());
+    }
     //a helper method that run if we reach a terminal node 
     private float reachterminal(final GameView game){
         int myIdx = game.getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
