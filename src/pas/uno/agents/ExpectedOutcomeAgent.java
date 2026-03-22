@@ -216,8 +216,14 @@ public class ExpectedOutcomeAgent
         node.setQValueTotal(keepIdx, keepValue);
         node.setQCount(keepIdx, 1);
         
-        // //if we want to plat the card 
-        // Move play = node.getChild(null)
+        //if we want to plat the card 
+        Move playDrawn = DrawnMove(node);
+        Node play = node.getChild(playDrawn);
+        float value = evaluate(play);
+        node.setQValueTotal(playIdx, value);
+        node.setQCount(playIdx, 1);
+
+        return node.getUtilityValues();
         
     }
 
