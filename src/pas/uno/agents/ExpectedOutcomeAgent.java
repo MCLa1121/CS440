@@ -187,6 +187,23 @@ public class ExpectedOutcomeAgent
         }
         return agents;
     }
+    //make a temp agent for a node
+    private Agent tempAgent(final Node node){
+        //find which player is acting now
+        final int cuerrentIdx = node.getLogicalPlayerIdx();
+        //change the index to a real inded
+        final int playerIdx = node.getGameView().getPlayerOrder().getAgentIdx(cuerrentIdx);
+        Agent temp = new Agent(playerIdx, 0){
+            public Move chooseCardToPlay(final GameView game){
+                return null;
+            }
+            public Move maybePlayDrawnCard(final GameView game, final int drawnCardIdx){
+                return null;
+            }
+        };
+        temp.setLogicalPlayerIdx(cuerrentIdx);
+        return temp;
+    }
     // //add a helper method to do the ramdomness play 
     // private float simulation(final GameView view){
     //     Game simu = new Game(view);
