@@ -340,70 +340,55 @@ public class UCTAgent
     public Move argmaxQValues(final Node node)
     {
         // TODO: implement me!
-        float max_ucb = Float.NEGATIVE_INFINITY;
+
+        // get the number of legalmove we can do
+        int num_of_legal_move = getNumberOfChoices(node);
+        // set the best q value to negative infinity the bigger the better
+        float best_q_vlaue = Float.NEGATIVE_INFINITY;
+
+        // set an array list to store the best move index
         ArrayList<Integer> best_move_index = new ArrayList<>();
-        long sum_of_visits = node.getStateCount(); // the N in formlar 
 
-        // ----------- find how many choice do we have ---------
-        int num_of_choice = 0;
-        // if we have legal move
-        if (node.getNodeState() == Node.NodeState.HAS_LEGAL_MOVES) {
-            num_of_choice = node.getOrderedLegalMoves().size();
-        
-        // if we do not have legal move and play drawn move
-        }else if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
-            num_of_choice = 2; // 1 for play 1 for keep in total there are 2 choice
-
-        }else{
-            num_of_choice = 1; // if cannot play it , the reamin choice is to draw it, and that become the only one choice
-        }
-
-        //-----------calculate ucb for each state(move) index
-        for (int i = 0; i < num_of_choice; i++) {
-            long move_visit_counter = node.getQCount(i); // in each node we have a counter for visit time (each node has it unique and the root node will have the sum)
-            float value;
-
-            // if zero mean we have not visit it before and it haa a value that is +infinity 
-            if (move_visit_counter == 0) {
-                value = Float.POSITIVE_INFINITY;
-            }else{
-                float Q_value =node.getQValue(i);
-
-                // use the ucb formular
-                double explore = Math.sqrt(2.0) * Math.sqrt(Math.log(sum_of_visits) / (double)move_visit_counter );
-                value = Q_value + (float)explore;
+        // use a for loop to itrate 
+        for (int i = 0; i < num_of_legal_move; i++) {
+            // if getqcount is zero , mean we have not visit ths move, so skip this move
+            if (node.getQCount(i) == 0) {
+                continue;
             }
 
-            if (value > max_ucb) {
-                max_ucb = value; // the bigger the better update max ucb
-                best_move_index.clear(); // empty the element in the list
-                best_move_index.add(i); // add the index of max ucb
+            // if the move is visited get the q value of this move
+            float q = node.getQValue(i);
+
+            // if q is bigger the best_q_value we have found
+            if (q > best_q_vlaue) {
+                // update the best q value
+                best_move_index = q;
+                // empty the best move index list
+                best_move_index.clear();
+                // add the best move index that we have right now into the list
+                best_move_index.add(i);
+                
+            // else if the q value is as good as the best we found before, we just add to the list (add the move index)
+            } else if (q == best_q_vlaue) {
+                best_move_index.add(i);
             }
         }
 
-        int card_index_chose = best_move_index.get(this.getRandom().nextInt(best_move_index.size()));
-        Card card_in_hand = node.getGameView().getHandView(node.getLogicalPlayerIdx()).getCard(card_index_chose);
-        
-        // ----------if can legally make a move
-        if (node.getNodeState() == Node.NodeState.HAS_LEGAL_MOVES) {
-            // whether has wild card in hand
-            if (card_in_hand.isWild()) {
-                return Move.createMove(this,card_index_chose,Color.getRandomColor(getRandom())); // pick a randome color
-            }
-            return Move.createMove(this, card_index_chose); // if not wild make the move ues card index chose
+        //------------ if no move has been visit choose randomly ----
+        // if the best move index list is empty, mean no move has been  visit
+        if (best_move_index.isEmpty()) {
+            // set a random choice index by randomly pick baase on the number of legal move we have
+            int random_choice_index = this.getRandom().nextInt(num_of_legal_move);
 
-        // ----------if node cannot make legal move but may play draw card
-        }else if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
-            if (card_index_chose == Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX) {
-                int draw_card_index = node.getOrderedLegalMoves().get(card_index_chose); // get draw card index
-                // if has card wild
-                if (card_in_hand.isWild()) {
-                    return Move.createMove(this, draw_card_index,Color.getRandomColor(getRandom()));
-                }
-                return Move.createMove(this, draw_card_index);
-            }
+            // reuturn choice to mvoe to make a move base on the current choice we have make
+            return choiceToMove(node, random_choice_index);
         }
-        return null; // we keep the card that we draw
+
+        // we need to choice one of the best move in the list e.g we have 3 card that is eqaully good
+        int best_move_choice = best_move_index.get(this.getRandom().nextInt(best_move_index.size()));
+
+        // return choice to move based on the best move choice we have get
+        return choiceToMove(node, best_move_choice);
     }
 }
 
