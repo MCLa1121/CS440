@@ -151,22 +151,33 @@ public class ExpectedOutcomeAgent
         return null;
     }
     //add a helper method that do the node evaluating 
-    // private float evaluate(final Node node){
-    //     if(node.isTerminal()){
-    //         //if we reach the terminal, call the helper methos get the value
-    //         return reachterminal(node.getGameView());
-    //     }
+    private float evaluate(final Node node){
+        if(node.isTerminal()){
+            //if we reach the terminal, call the helper methos get the value
+            return reachterminal(node.getGameView());
+        }
+        //if we reach the non terminal leaf node
+        //estimate the node value
+        if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
+            //if we reach the non terminal leaf
+            float total = 0; 
+            for(int i = 0; i < ROLLOUT; i++){
+                total += simulation(node.getGameView());
+            }
+            return total / ROLLOUT;  
+        }
+        Node.NodeState state = node.getNodeState();
 
-    //     if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
-    //         //if we reach the non terminal leaf
-    //         float total = 0; 
-    //         for(int i = 0; i < ROLLOUT; i++){
-    //             total += simulation(node.getGameView());
-    //         }
-    //         return total / ROLLOUT;  
-    //     }
-    //     Node.NodeState state = node.getNodeState();
-    // }
+        //case where the player have a legal move
+        if(state  == Node.NodeState.HAS_LEGAL_MOVES){
+            //find all the action in this node
+            for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
+                int cardIdx = node.getOrderedLegalMoves().get(moveIdx);
+                //get the actual move
+                
+            }
+        }
+    }
 
     //we need to create a fake agent for the copied game
     //so that when ever we need to have a simulation game, we can call it
@@ -204,7 +215,7 @@ public class ExpectedOutcomeAgent
         temp.setLogicalPlayerIdx(cuerrentIdx);
         return temp;
     }
-    
+
     // //add a helper method to do the ramdomness play 
     private float simulation(final GameView view){
         //make a copy for a game for us to simulate the game
