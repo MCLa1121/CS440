@@ -362,7 +362,7 @@ public class UCTAgent
             // if q is bigger the best_q_value we have found
             if (q > best_q_vlaue) {
                 // update the best q value
-                best_move_index = q;
+                best_q_vlaue = q;
                 // empty the best move index list
                 best_move_index.clear();
                 // add the best move index that we have right now into the list
