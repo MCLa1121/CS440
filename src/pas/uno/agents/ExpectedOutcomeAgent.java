@@ -237,6 +237,25 @@ public class ExpectedOutcomeAgent
         //not wild card 
         return Move.createMove(tempAgent, cardIdx);
     }
+
+    //a helper method for a player want to play the drawn card
+    private Move DrawnMove(final Node node){
+        //make a temp agent for the player who is playing this turn 
+        Agent tempAgent = tempAgent(node);
+        //if the node is the root node, we just use that value 
+        if(node.getDepth() == 0 && DrawnIDx != null){
+            HandView hand = node.getGameView().getHandView(nod,getLogicalPlayerIdx());
+            if(this.DrawnIDx >= 0 && this.DrawnIDx != null){
+                Card drawnCard = hand.getCard(this.DrawnIDx);
+                if(drawnCard.isWild()){
+                    Color choseColor = chooseBestWildColor( hand);
+                    return Move.createMove(tempAgent, this.DrawnIDx, choseColor);
+                }
+                return Move.createMove(tempAgent, this.DrawnIDx);
+            }
+        }
+        return Move.createMove(tempAgent, 0, Color.RED);
+    }
     //we need to create a fake agent for the copied game
     //so that when ever we need to have a simulation game, we can call it
     private static Agent[] dummy(final GameView view){
