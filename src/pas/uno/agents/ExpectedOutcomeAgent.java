@@ -468,7 +468,7 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
                 //since we dont want to comput Q value by dividing 0
                 keepQ = Float.NEGATIVE_INFINITY;//avoid this move it 0
             }else{
-                keepQ = node.getQValue(playIdx);
+                keepQ = node.getQValue(keepIdx);
             }
 
             //now check which value is bigger
@@ -482,6 +482,28 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
             }
             return makeMoveFromCardIdx(node.getGameView(), this.DrawnIDx);
         }
-        return null;
+        
+        //if we have the legal move
+        int bestMoveIdx = -1;
+        float beatQ = Float.NEGATIVE_INFINITY;
+
+        for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
+            //since it is not divided by 0 
+            if(node.getQCount(moveIdx) == 0){
+                continue;
+            }
+            float q = node.getQValue(moveIdx);
+            if(bestMoveIdx == -1 || q > beatQ){
+                bestMoveIdx = moveIdx;
+                beatQ = q;
+            }
+        }
+        //if we reach the move for the first time
+        if(bestMoveIdx == -1){
+            bestMoveIdx = 0;
+        }
+        //get the real card index from the q value
+        int cardIdx = node.getOrderedLegalMoves().get(bestMoveIdx);
+        return makeMoveFromCardIdx(node.getGameView(), cardIdx);
     }
 }
