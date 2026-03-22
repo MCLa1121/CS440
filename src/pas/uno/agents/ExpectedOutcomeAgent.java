@@ -161,13 +161,36 @@ public class ExpectedOutcomeAgent
             //if we reach the non terminal leaf
             float total = 0; 
             for(int i = 0; i < ROLLOUT; i++){
-                total += randomPlayout(node.getGameView());
+                total += simulation(node.getGameView());
             }
             return total / ROLLOUT;  
         }
         Node.NodeState state = node.getNodeState();
     }
-    
+
+    //we need to create a fake agent for the copied game
+    //so that when ever we need to have a simulation game, we can call it
+    private static Agent[] dummy(final GameView view){
+        Agent[] agents = new Agent[view.getNumPlayers()];
+        for(int logicalIdx = 0; logicalIdx < view.getNumPlayers(); logicalIdx++){
+            final int playerIdx = view.getPlayerOrder().getAgentIdx(logicalIdx);
+            agents[logicalIdx] = new Agent(playerIdx, 0) {
+                @Override
+                public Move chooseCardToPlay(final GameView game){
+                    return null;
+                }
+                public Move maybePlayDrawnCard(final GameView game, final int drawnCardIdx){
+                    return null;
+                }
+            };
+            agents[logicalIdx].setLogicalPlayerIdx(logicalIdx);
+        }
+        return agents;
+    }
+    //add a helper method to do the ramdomness play 
+    private float simulation(final GameView view){
+        Game simu = new Game(view);
+    }
     //a helper method that run if we reach a terminal node 
     private float reachterminal(final GameView game){
         int myIdx = game.getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
