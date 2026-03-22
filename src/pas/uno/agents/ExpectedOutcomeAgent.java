@@ -178,7 +178,22 @@ public class ExpectedOutcomeAgent
             }
         }
     }
+    //a helper method that make a move
+    private Move makeMove (final Node node, final int cardIdx){
+        //check what the current player have in hand reaching a node
+        HandView hand = node.getGameView().getHandView(node.getLogicalPlayerIdx());
+        Card card = hand.getCard(cardIdx);
 
+        //built a tempAgent for this player 
+        Agent tempAgent = tempAgent(node);
+        //if have a wild card, choose a color
+        if(card.isWild()){
+            Color chosenColor = chooseBestWildColor(hand);
+            return Move.createMove(tempAgent, cardIdx, chosenColor);
+        }
+        //not wild card 
+        return Move.createMove(tempAgent, cardIdx);
+    }
     //we need to create a fake agent for the copied game
     //so that when ever we need to have a simulation game, we can call it
     private static Agent[] dummy(final GameView view){
