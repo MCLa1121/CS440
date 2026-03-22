@@ -150,7 +150,7 @@ public class ExpectedOutcomeAgent
        }
         return null;
     }
-    
+
     //add a helper method that do the node evaluating 
     private float evaluate(final Node node){
         if(node.isTerminal()){
@@ -186,10 +186,39 @@ public class ExpectedOutcomeAgent
                 //set the counter to 1 since we have gp over all the children once
                 node.setQCount(moveIdx, 1);
             }
+            //matain the utility valu 
+            return node.getUtilityValues();
         }
-        //matain the utility valu 
-        return node.getUtilityValues();
-        //evaluate finish
+        
+        //no legal move, unresolved draw cards exists 
+        if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
+            //only one action we can take
+            int moveIdx = Node.NoLegalMovesIdxDefaults.DrawUnresolvedCardsIdxs.MOVE_IDX;
+            //get the child and get its value
+            Node child = node.getChild(null);
+            float childValue = evaluate(child);
+            //set the Q value after we get the chidren value
+            node.setQValueTotal(moveIdx, childValue);
+            //set the counter to 1 since we have gp over all the children once
+            node.setQCount(moveIdx, 1);
+            return node.getUtilityValues();
+        }
+
+        //no legal moves, draw one card, play or keep it 
+        //if we have 0, play it
+        //one keep it
+        int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
+        int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
+
+        //if we want to keep the cad 
+        Node keep = node.getChild(null);
+        float keepValue = evaluate(keep);
+        node.setQValueTotal(keepIdx, keepValue);
+        node.setQCount(keepIdx, 1);
+        
+        // //if we want to plat the card 
+        // Move play = node.getChild(null)
+        
     }
 
     //a helper method that make a move
