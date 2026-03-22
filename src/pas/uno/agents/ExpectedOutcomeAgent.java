@@ -134,21 +134,15 @@ public class ExpectedOutcomeAgent
         6.keep doing it until we reach the terminal state, rollout
         7.after find the value, backpropogation 
         */
-       //first set the root node, the node that do not have a parent
-       MCTSNode root = new MCTSNode(game, getLogicalPlayerIdx(), null);
-       for(int i = 0; i < NUM_ITERATIONS; i++){
-        Node current = root;
-        //store the path so we can do the backpropogation 
-        List<Node> pathNode = new ArrayList<Node>();
-        List<Integer> pathMoveIdxs = new ArrayList<Integer>();
-        //At the beginning of the path, the root may have a known drawn card. Keep track of it for the root decision.
-        Integer currentIdx = drawnCardIdx;
-        //run until we reach the leaf node or artificial leaf node 
-        while(!current.isTerminal() && current.getDepth() < ARTIFICIAL_LEAF_DEPTH){
-            
-        }
-       }
-        return null;
+        //if we start form the root, save the drawn card index
+        //used for the later helper method 
+        this.DrawnIDx = drawnCardIdx; 
+        //first set the root node, the node that do not have a parent
+        MCTSNode root = new MCTSNode(game, game.getPlayerOrder().getCurrentLogicalPlayerIdx(), null);
+        //find the q value by recursively evaluate the tree from the node
+        evaluate(root);
+        //maintain the root node with the value
+        return root;
     }
 
     //add a helper method that do the node evaluating 
