@@ -42,6 +42,18 @@ public class UCTAgent
         {
             // set up a simulation 
             Game simulation = new Game(this.getGameView());
+            // get the current player index
+            int current_player_index = this.getLogicalPlayerIdx();
+            // get current hand from the current player
+            Hand current_hand = simulation.getHand(current_player_index);
+
+            // if the unrealoved draw is avalilble
+            if (this.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT) {
+                // player need to draw the total
+                simulation.drawTotal(current_hand,simulation.getUnresolvedCards().total());
+            }
+
+            // then we move to reslovedmove null
             // resolved move apply one time (if use a while loop here the agent will do noting)
             simulation.resolveMove(move);
 
@@ -99,10 +111,14 @@ public class UCTAgent
     // private helper -------------help to rollout
     private float rollout(GameView gameview) {
         // set a simulation game
+        System.out.println("start rollout");
         Game simulation_game = new Game(gameview);
 
         // while the game is not over keep playing
-        while (!simulation_game.isOver()) {
+        // bug: might be the simualation is too mluch make it smaller
+        int size = 0;
+        while (!simulation_game.isOver() && size < 200) {
+            size ++; 
             // get the current player index, and get the current card in hand, and set move to null
             int current_player_index = simulation_game.getPlayerOrder().getCurrentLogicalPlayerIdx();
             Hand current_card_hand = simulation_game.getHand(current_player_index);
@@ -142,7 +158,7 @@ public class UCTAgent
             // if the move is null then call resovlved move to move to the next turn
             simulation_game.resolveMove(move);
         }
-
+        System.out.println("end rollout");
         // ------------ Win OR Lose --------
         // if we have play all of the card in our hand (0 card in hand)
         if (simulation_game.getHand(this.getLogicalPlayerIdx()).size() == 0) {
@@ -153,6 +169,7 @@ public class UCTAgent
             // lose -1
             return -1.0f;
         }
+        
     }
 
     // private helper -------------help to backpropagate
@@ -263,10 +280,12 @@ public class UCTAgent
                        final Integer drawnCardIdx)
     {
         // TODO: implement me!
+        // for debuging
+        System.out.println("enter search");
         // Bug: getlogicalPlayerIdx(); change it to game.getplayerOrder().getCurrentLogicalPlayerIdx()
         MCTSNode root_node = new MCTSNode(game, game.getPlayerOrder().getCurrentLogicalPlayerIdx(), null);
         long Start_of_thinking_time = System.currentTimeMillis();
-        long budget = Math.max(1, this.getMaxThinkingTimeInMS() /2); 
+        long budget = 20; 
 
         //---------- while we still have budget to think keep loop running ----------
         while (System.currentTimeMillis() - Start_of_thinking_time < budget) {
