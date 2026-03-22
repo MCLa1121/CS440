@@ -149,8 +149,60 @@ public class ExpectedOutcomeAgent
         //if there are legal move to play
         if(state == Node.NodeState.HAS_LEGAL_MOVES){
             //evaluate each move once
+            for(int moveIdx = 0; moveIdx < root.getOrderedLegalMoves().size(); moveIdx++){
+                int cardIdx = root.getOrderedLegalMoves().get(moveIdx);
+
+                //get the actual move 
+                Move move = makeMove(root, cardIdx);
+
+                //get the children state afer having the move
+                Node child = root.getChild(move);
+
+                //matain all the value of the chilren 
+                float value = heuristic(child);
+
+                //save the value as the q value of a move 
+                root.setQValueTotal(moveIdx, value);
+                root.setQCount(moveIdx, 1);
+            }
+            return root;
         }
-        return null;
+
+        // no legal move, need to draw the whole unresolved pile 
+        if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
+            int moveIdx = Node.NoLegalMovesIdxDefaults.DrawUnresolvedCardsIdxs.MOVE_IDX;
+
+            //since we can only draw 
+            Node child = root.getChild(null);
+            float value = heuristic(child);
+
+            root.setQValueTotal(moveIdx, value);
+            root.setQCount(moveIdx, 1);
+            return root;
+        }
+
+        //no legal move and draw one card, keep it or play it
+        //index for keeping the card 
+        int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
+
+        //if we keep the card 
+        //evaluate the child of  this move 
+        Node keepChild = root.getChild(null);
+        float KeepValue = heuristic(keepChild);
+        root.setQValueTotal(keepIdx, KeepValue);
+        root.setQCount(keepIdx, 1);
+
+        //if decided to play the card
+        int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
+        //we can only move if we drawn a card 
+        Move playDrawn = DrawnMove(root);
+        if(playDrawn != null){
+            Node playChild = root.getChild(playDrawn);
+            float playvalue = heuristic(playChild);
+            root.setQValueTotal(playIdx, playvalue);
+            root.setQCount(keepIdx, 1);
+        }
+        return root;
     }
     
     private float heuristic(final Node node) {
