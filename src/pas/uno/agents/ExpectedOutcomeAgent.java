@@ -204,10 +204,60 @@ public class ExpectedOutcomeAgent
         temp.setLogicalPlayerIdx(cuerrentIdx);
         return temp;
     }
+    
     // //add a helper method to do the ramdomness play 
-    // private float simulation(final GameView view){
-    //     Game simu = new Game(view);
-    // }
+    private float simulation(final GameView view){
+        //make a copy for a game for us to simulate the game
+        Game simu = new Game(view, dummy(view));
+
+        //stop until the game end
+        while(!simu.isOver()){
+            //a basic setup for a game 
+            Hand hand = simu.getCurrentPlayerHand();
+            Agent curAgent = simu.getCurrentAgent();
+            Move move = null;
+            //when the plyer have a legal move
+            if(hand.hasLegalMoves(simu)){
+                //matain all the moves
+                List<Integer> legalMove = new ArrayList<Integer>(hand.getLegalMoves(simu));
+                //pick one card
+                int chooseCardIdx = legalMove.get(this.getRandom().nextInt(legalMove.size()));
+                Card chosenCard = hand.getCard(chooseCardIdx);
+                //check whether the card is a wild card or not
+                if(chosenCard.isWild()){
+                    Color chosenColor = Color.getRandomColor(getRandom());
+                    move = Move.createMove(curAgent, chooseCardIdx,chosenColor);
+                }else{
+                    //if it is not we create a move with no color
+                    move = Move.createMove(curAgent, chooseCardIdx);
+                }
+            }//if no legal move, but still unresolved draw pile, draw 1 card
+            else if(simu.getUnresolvedCards().isEmpty()){
+                int drawnIdx = simu.drawCard(hand);
+                Card drawnCard = hand.getCard(drawnIdx);
+                //if the card can be played, we play it 
+                if(drawnCard.canBePlayedAsDrawCard(simu)){
+                    boolean canPlay = getRandom().nextBoolean();
+                    if(canPlay){
+                        if(drawnCard.isWild()){
+                            Color chosenColor = Color.getRandomColor(getRandom());
+                            move = Move.createMove(curAgent, drawnIdx, chosenColor);
+                        }else{
+                            move = Move.createMove(curAgent, drawnIdx);
+                        }
+                    }
+                }
+            }else{
+                //draw the whole unresolved 
+                simu.drawTotal(hand, simu.getUnresolvedCards().total());
+            }
+
+            //apply action
+            simu.resolveMove(move);
+        }
+        //return the terminal value
+        return reachterminal(simu.getOmniscientView());
+    }
     //a helper method that run if we reach a terminal node 
     private float reachterminal(final GameView game){
         int myIdx = game.getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
