@@ -66,20 +66,24 @@ public class UCTAgent
         // if can legally move
         if (node.getNodeState() == Node.NodeState.HAS_LEGAL_MOVES) {
             return wildMove(node.getGameView(),node.getLogicalPlayerIdx(), node.getOrderedLegalMoves().get(index));
-        
-        // if only aloowed to draw single card , play or keep 
-        } else if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
+        }
+
+        // if no leagal move and no unresloved card persent reutnr null which here we need to draw card
+        if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT) {
+            return null;
+        }
+
+        // if no legal move , and may play the drawn card 
+        if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
             // if we can play the card
             if (index == Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX) {
                 // -1 because we are in a index form
                 int draw_card_index = node.getGameView().getHandView(node.getLogicalPlayerIdx()).size() - 1;
                 return wildMove(node.getGameView(), node.getLogicalPlayerIdx(), draw_card_index);
+            }else{
+                return null; // keep the card if non of the move can be make
             }
-
-            return null; // keep the card if non of the move can be make
-
         }
-
         return null; // return null if we make the draw and do nothing
     }
 
@@ -125,11 +129,14 @@ public class UCTAgent
                 // if the drawn card are legal to pley
                 if (draw_card.canBePlayedAsDrawCard(simulation_game)) {
                     move = wildMove(simulation_game.getView(current_player_index), current_player_index, draw_card_index);
+                } else {
+                    move = null; // we keep the card taht we have drawn
                 }
             
             // otherwise we need to draw the card and add the total draw card to the with the unreaoved card that have in total
             } else {
                 simulation_game.drawTotal(current_card_hand, simulation_game.getUnresolvedCards().total());
+                move = null; // if not set move to null the simulation will keep running forever
             }
 
             // if the move is null then call resovlved move to move to the next turn
@@ -180,10 +187,10 @@ public class UCTAgent
         // if we only have a move that we may be able to play a card or keep a card (in total 2 choices)
         } else if (node.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD) {
             return 2; 
+        } else {
+            // return one becaue only choice is to keep the card and do noting.
+            return 1; 
         }
-
-        // return one becaue only choice is to keep the card and do noting.
-        return 1; 
     }
 
     // private helper getBestUCB ----------- get the best ucb we can find (note its retuning the index)
@@ -256,9 +263,10 @@ public class UCTAgent
                        final Integer drawnCardIdx)
     {
         // TODO: implement me!
-        MCTSNode root_node = new MCTSNode(game, getLogicalPlayerIdx(), null);
+        // Bug: getlogicalPlayerIdx(); change it to game.getplayerOrder().getCurrentLogicalPlayerIdx()
+        MCTSNode root_node = new MCTSNode(game, game.getPlayerOrder().getCurrentLogicalPlayerIdx(), null);
         long Start_of_thinking_time = System.currentTimeMillis();
-        long budget = this.getMaxThinkingTimeInMS() - 40; 
+        long budget = Math.max(1, this.getMaxThinkingTimeInMS() /2); 
 
         //---------- while we still have budget to think keep loop running ----------
         while (System.currentTimeMillis() - Start_of_thinking_time < budget) {
@@ -306,8 +314,17 @@ public class UCTAgent
                 //-----------Selection ---------------
                 // otherwise (when not visted index in -1, mean we try all move at lealst 1 time)
                 } else {
+                    // Bug: i should not assume my oppoent also pick the action that maximize my ucb score
                     // use getbestUcb to get the best ucb value we can have
-                    int best_ucb = getBestUCB(current);
+                    int best_ucb;
+                    // if the current turn is my turn i call get best ucb to get the best ucb as my perspective
+                    if (current.getLogicalPlayerIdx() == this.getLogicalPlayerIdx()) {
+                        best_ucb = getBestUCB(current);
+                    
+                    // otherwise it is not my turn; which shoudl random choose
+                    } else {
+                        best_ucb = this.getRandom().nextInt()getNumberOfChoices(current);
+                    }
                     // and get the best move based on the best ucb value we just get
                     Move best_move = choiceToMove(current, best_ucb);
                     // update current
