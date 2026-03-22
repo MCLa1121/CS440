@@ -323,7 +323,7 @@ public class UCTAgent
                     
                     // otherwise it is not my turn; which shoudl random choose
                     } else {
-                        best_ucb = this.getRandom().nextInt()getNumberOfChoices(current);
+                        best_ucb = this.getRandom().nextInt(getNumberOfChoices(current));
                     }
                     // and get the best move based on the best ucb value we just get
                     Move best_move = choiceToMove(current, best_ucb);
