@@ -402,3 +402,6 @@ public class UCTAgent
         return null; // we keep the card that we draw
     }
 }
+
+
+// javac -cp "./lib/*;." @uno.srcs
