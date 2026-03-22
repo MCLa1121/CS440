@@ -158,15 +158,27 @@ public class ExpectedOutcomeAgent
             //if we reach the terminal, call the helper methos get the value
             return reachterminal(node.getGameView());
         }
+        //add another time check 
+        if(System.currentTimeMillis() >= this.searchDeadlineMS){
+            return simulation(node.getGameView());
+        }
         //if we reach the non terminal leaf node
         //estimate the node value
         if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
             //if we reach the non terminal leaf
             float total = 0; 
+            int count = 0;
             for(int i = 0; i < ROLLOUT; i++){
-                total += simulation(node.getGameView());
+                if(System.currentTimeMillis() >= this.searchDeadlineMS){
+                    break;
             }
-            return total / ROLLOUT;  
+                total += simulation(node.getGameView());
+                count++;
+            }
+            if(count == 0){
+                return simulation(node.getGameView());
+        }
+            return total / count;  
         }
         Node.NodeState state = node.getNodeState();
 
@@ -174,6 +186,9 @@ public class ExpectedOutcomeAgent
         if(state  == Node.NodeState.HAS_LEGAL_MOVES){
             //find all the action in this node
             for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
+                if(System.currentTimeMillis() >= this.searchDeadlineMS){
+                    break;
+                }
                 int cardIdx = node.getOrderedLegalMoves().get(moveIdx);
                 //get the actual move
                 Move move = makeMove(node, cardIdx);
@@ -231,12 +246,14 @@ public class ExpectedOutcomeAgent
         }
 
         if(System.currentTimeMillis() < this.searchDeadlineMS){
-            Move playDrawn = DrawnMove(node);
+        Move playDrawn = DrawnMove(node);
+        if(playDrawn != null){
             Node play = node.getChild(playDrawn);
             float value = evaluate(play);
             node.setQValueTotal(playIdx, value);
             node.setQCount(playIdx, 1);
         }
+    }
         return node.getUtilityValues();
     }
 
@@ -273,7 +290,7 @@ public class ExpectedOutcomeAgent
                 return Move.createMove(tempAgent, this.DrawnIDx);
             }
         }
-        return Move.createMove(tempAgent, 0, Color.RED);
+        return null;
     }
     //we need to create a fake agent for the copied game
     //so that when ever we need to have a simulation game, we can call it
@@ -316,9 +333,10 @@ public class ExpectedOutcomeAgent
     private float simulation(final GameView view){
         //make a copy for a game for us to simulate the game
         Game simu = new Game(view, dummy(view));
-
+        int steps = 0;
         //stop until the game end
-        while(!simu.isOver()){
+        while(!simu.isOver() && steps < 150){
+            steps++;
             //a basic setup for a game 
             Hand hand = simu.getCurrentPlayerHand();
             Agent curAgent = simu.getCurrentAgent();
@@ -370,8 +388,33 @@ public class ExpectedOutcomeAgent
             //apply action
             simu.resolveMove(move);
         }
-        //return the terminal value
-        return reachterminal(simu.getOmniscientView());
+        // //return the terminal value
+        // return reachterminal(simu.getOmniscientView());
+        if(simu.isOver()){
+            return reachterminal(simu.getOmniscientView());
+        }
+
+        int myIdx = simu.getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
+        int myCards = simu.getHand(myIdx).size();
+
+        int bestOther = Integer.MAX_VALUE;
+        for(int i = 0; i < simu.getNumPlayers(); i++){
+            if(i == myIdx){
+            continue;
+        }
+            int otherCards = simu.getHand(i).size();
+        if(otherCards < bestOther){
+            bestOther = otherCards;
+        }
+    }
+
+        if(myCards < bestOther){
+            return 1.0f;
+        }else if(myCards == bestOther){
+            return 0.5f;
+        }else{
+            return 0.0f;
+        }
     }
     //a helper method that run if we reach a terminal node 
     private float reachterminal(final GameView game){
