@@ -151,22 +151,22 @@ public class ExpectedOutcomeAgent
         return null;
     }
     //add a helper method that do the node evaluating 
-    private float evaluate(final Node node){
-        if(node.isTerminal()){
-            //if we reach the terminal, call the helper methos get the value
-            return reachterminal(node.getGameView());
-        }
+    // private float evaluate(final Node node){
+    //     if(node.isTerminal()){
+    //         //if we reach the terminal, call the helper methos get the value
+    //         return reachterminal(node.getGameView());
+    //     }
 
-        if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
-            //if we reach the non terminal leaf
-            float total = 0; 
-            for(int i = 0; i < ROLLOUT; i++){
-                total += simulation(node.getGameView());
-            }
-            return total / ROLLOUT;  
-        }
-        Node.NodeState state = node.getNodeState();
-    }
+    //     if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
+    //         //if we reach the non terminal leaf
+    //         float total = 0; 
+    //         for(int i = 0; i < ROLLOUT; i++){
+    //             total += simulation(node.getGameView());
+    //         }
+    //         return total / ROLLOUT;  
+    //     }
+    //     Node.NodeState state = node.getNodeState();
+    // }
 
     //we need to create a fake agent for the copied game
     //so that when ever we need to have a simulation game, we can call it
@@ -187,10 +187,10 @@ public class ExpectedOutcomeAgent
         }
         return agents;
     }
-    //add a helper method to do the ramdomness play 
-    private float simulation(final GameView view){
-        Game simu = new Game(view);
-    }
+    // //add a helper method to do the ramdomness play 
+    // private float simulation(final GameView view){
+    //     Game simu = new Game(view);
+    // }
     //a helper method that run if we reach a terminal node 
     private float reachterminal(final GameView game){
         int myIdx = game.getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
