@@ -30,10 +30,12 @@ public class ExpectedOutcomeAgent
     
     //testing perpose
     // how deep to expand the explicit tree before doing a rollout
-    private static final int ARTIFICIAL_LEAF_DEPTH = 3;
+    private static final int ARTIFICIAL_LEAF_DEPTH = 1;
 
     // how many rollouts to do
-    private static final int NUM_ITERATIONS = 200;
+    //private static final int NUM_ITERATIONS = 200;
+    private static final int ROLLOUT = 2;
+    private long searchDeadlineMS;
 
     public static class MCTSNode
         extends Node
@@ -119,7 +121,6 @@ public class ExpectedOutcomeAgent
      * @return  The {@link Node} of the root who'se q-values should now be populated and ready to argmax
      */
 
-    private static final int ROLLOUT = 20;
     @Override
     public Node search(final GameView game,
                        final Integer drawnCardIdx)
@@ -139,6 +140,12 @@ public class ExpectedOutcomeAgent
         this.DrawnIDx = drawnCardIdx; 
         //first set the root node, the node that do not have a parent
         MCTSNode root = new MCTSNode(game, game.getPlayerOrder().getCurrentLogicalPlayerIdx(), null);
+        long timelimit = this.getMaxThinkingTimeInMS() - 30;
+        if(timelimit < 1){
+            timelimit = 1;
+        }
+        this.searchDeadlineMS = System.currentTimeMillis() + timelimit;
+
         //find the q value by recursively evaluate the tree from the node
         evaluate(root);
         //maintain the root node with the value
@@ -204,21 +211,33 @@ public class ExpectedOutcomeAgent
         int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
         int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
 
-        //if we want to keep the cad 
-        Node keep = node.getChild(null);
-        float keepValue = evaluate(keep);
-        node.setQValueTotal(keepIdx, keepValue);
-        node.setQCount(keepIdx, 1);
+        // //if we want to keep the cad 
+        // Node keep = node.getChild(null);
+        // float keepValue = evaluate(keep);
+        // node.setQValueTotal(keepIdx, keepValue);
+        // node.setQCount(keepIdx, 1);
         
-        //if we want to plat the card 
-        Move playDrawn = DrawnMove(node);
-        Node play = node.getChild(playDrawn);
-        float value = evaluate(play);
-        node.setQValueTotal(playIdx, value);
-        node.setQCount(playIdx, 1);
+        // //if we want to plat the card 
+        // Move playDrawn = DrawnMove(node);
+        // Node play = node.getChild(playDrawn);
+        // float value = evaluate(play);
+        // node.setQValueTotal(playIdx, value);
+        // node.setQCount(playIdx, 1);
+        if(System.currentTimeMillis() < this.searchDeadlineMS){
+            Node keep = node.getChild(null);
+            float keepValue = evaluate(keep);
+            node.setQValueTotal(keepIdx, keepValue);
+            node.setQCount(keepIdx, 1);
+        }
 
+        if(System.currentTimeMillis() < this.searchDeadlineMS){
+            Move playDrawn = DrawnMove(node);
+            Node play = node.getChild(playDrawn);
+            float value = evaluate(play);
+            node.setQValueTotal(playIdx, value);
+            node.setQCount(playIdx, 1);
+        }
         return node.getUtilityValues();
-        
     }
 
     //a helper method that make a move
@@ -307,9 +326,17 @@ public class ExpectedOutcomeAgent
             //when the plyer have a legal move
             if(hand.hasLegalMoves(simu)){
                 //matain all the moves
-                List<Integer> legalMove = new ArrayList<Integer>(hand.getLegalMoves(simu));
-                //pick one card
-                int chooseCardIdx = legalMove.get(this.getRandom().nextInt(legalMove.size()));
+                Set<Integer> legalMove = hand.getLegalMoves(simu);
+                int target = this.getRandom().nextInt(legalMove.size());
+                int chooseCardIdx = -1;
+                int seen = 0;
+                for(Integer idx : legalMove){
+                    if(seen == target){
+                    chooseCardIdx = idx;
+                    break;
+                }
+                    seen++;
+                }
                 Card chosenCard = hand.getCard(chooseCardIdx);
                 //check whether the card is a wild card or not
                 if(chosenCard.isWild()){
@@ -506,4 +533,6 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
         int cardIdx = node.getOrderedLegalMoves().get(bestMoveIdx);
         return makeMoveFromCardIdx(node.getGameView(), cardIdx);
     }
+    //javac -cp "./lib/*;." @uno.srcs
+    //java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain src.pas.uno.agents.ExpectedOutcomeAgent edu.bu.pas.uno.agents.RandomAgent
 }
