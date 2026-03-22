@@ -129,7 +129,7 @@ public class UCTAgent
             
             // otherwise we need to draw the card and add the total draw card to the with the unreaoved card that have in total
             } else {
-                simulation_game.drawTotal(current_card_hand, simulation_game.getUnresolvedCards().total());;
+                simulation_game.drawTotal(current_card_hand, simulation_game.getUnresolvedCards().total());
             }
 
             // if the move is null then call resovlved move to move to the next turn
@@ -258,9 +258,11 @@ public class UCTAgent
         // TODO: implement me!
         MCTSNode root_node = new MCTSNode(game, getLogicalPlayerIdx(), null);
         long Start_of_thinking_time = System.currentTimeMillis();
+        long budget = this.getMaxThinkingTimeInMS() - 40; 
 
         //---------- while we still have budget to think keep loop running ----------
-        while (System.currentTimeMillis() - Start_of_thinking_time < this.getMaxThinkingTimeInMS()) {
+        while (System.currentTimeMillis() - Start_of_thinking_time < budget) {
+
             Node current = root_node; 
 
             // -- for backpropageation --
