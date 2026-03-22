@@ -118,6 +118,8 @@ public class ExpectedOutcomeAgent
      *                          method of {@link Agent}
      * @return  The {@link Node} of the root who'se q-values should now be populated and ready to argmax
      */
+
+    private static final int ROLLOUT = 20;
     @Override
     public Node search(final GameView game,
                        final Integer drawnCardIdx)
@@ -139,10 +141,42 @@ public class ExpectedOutcomeAgent
         //store the path so we can do the backpropogation 
         List<Node> pathNode = new ArrayList<Node>();
         List<Integer> pathMoveIdxs = new ArrayList<Integer>();
+        //At the beginning of the path, the root may have a known drawn card. Keep track of it for the root decision.
+        Integer currentIdx = drawnCardIdx;
+        //run until we reach the leaf node or artificial leaf node 
+        while(!current.isTerminal() && current.getDepth() < ARTIFICIAL_LEAF_DEPTH){
+            
+        }
        }
         return null;
     }
+    //add a helper method that do the node evaluating 
+    private float evaluate(final Node node){
+        if(node.isTerminal()){
+            //if we reach the terminal, call the helper methos get the value
+            return reachterminal(node.getGameView());
+        }
 
+        if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
+            //if we reach the non terminal leaf
+            float total = 0; 
+            for(int i = 0; i < ROLLOUT; i++){
+                total += randomPlayout(node.getGameView());
+            }
+            return total / ROLLOUT;  
+        }
+        Node.NodeState state = node.getNodeState();
+    }
+    
+    //a helper method that run if we reach a terminal node 
+    private float reachterminal(final GameView game){
+        int myIdx = game.getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
+        if(game.getHandView(myIdx).size() == 0){
+            return 1;
+        }else{
+            return 0; 
+        }
+    }
     //adding a helper to find how many wild card we have in hand
     private Color chooseBestWildColor(final HandView hand){
         int red = 0;
