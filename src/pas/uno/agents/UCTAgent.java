@@ -261,24 +261,66 @@ public class UCTAgent
 
             // -- for backpropageation --
             ArrayList<Node> node_path = new ArrayList<>();
-            ArrayList<Integer> action_path = new ArrayList<>();
+            ArrayList<Integer> move_path = new ArrayList<>();
             node_path.add(current);
 
             // ------------ selection ------------
             // if not a leaf node keep running
             while (!current.isTerminal()) {
-                int choices = ggt
- }
 
-            // ------------expansion -------------
+                // set not visited as -1
+                int  not_visited = -1;
 
+                // choices as the number fo choice from current root node
+                int choices = getNumberOfChoices(current);
+
+                // use the for loop to determine the move index that we have not visit
+                for (int i = 0; i< choices; i++) {
+                    if (current.getQCount(i) == 0) {
+                        not_visited = i;
+                        break;          
+                    }
+                }
+
+                // --------- Expansion ------------
+                // if not visited is not equal to -1 we want to try a new move that not been visited before
+                if (not_visited != -1) {
+                    // create expand move , and based on the current node and not visted move index
+                    Move expand_move = choiceToMove(current, not_visited);
+                    // update current to its child base on the move epaand move
+                    current = current.getChild(expand_move);
+                    
+                    // update move path and node path
+                    move_path.add(not_visited);
+                    node_path.add(current);
+
+                    // break the loop to uwe are going to simulate this new move
+                    break; 
+                
+                //-----------Selection ---------------
+                // otherwise (when not visted index in -1, mean we try all move at lealst 1 time)
+                } else {
+                    // use getbestUcb to get the best ucb value we can have
+                    int best_ucb = getBestUCB(current);
+                    // and get the best move based on the best ucb value we just get
+                    Move best_move = choiceToMove(current, best_ucb);
+                    // update current
+                    current = current.getChild(best_move);
+
+                    // update node path and move path
+                    move_path.add(best_ucb);
+                    node_path.add(current);
+                }  
+            }
+
+            // ----------- Rollout --------------
+            float rollout_value = rollout(current.getGameView());
+            // ----------- Backpropagation ---------
+            backpropagate(node_path, move_path, rollout_value);
         }
 
-        // ---------- simulation -------------
-        
-
-        // ---------- backpropagate ---------
-
+        // return root_node after we done
+        return root_node;
 
     }
 
