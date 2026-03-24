@@ -167,9 +167,10 @@ public class UCTAgent
         // bug: might be the simualation is too mluch make it smaller
         // int size = 0;
 
-        // need to make rollout cheaper; add thread.currentThread().isInterrputed so we can stop the rollout if we are timeout in the search
-        while (!Thread.currentThread().isInterrupted() && !simulation_game.isOver()) {
-            // size ++; 
+        // need to make rollout cheaper for testing
+        // if we have not finished simualting game
+        while (!simulation_game.isOver()) {
+            // size ++; testing purpose
             // get the current player index, and get the current card in hand, and set move to null
             int current_player_index = simulation_game.getPlayerOrder().getCurrentLogicalPlayerIdx();
             Hand current_card_hand = simulation_game.getHand(current_player_index);
@@ -337,13 +338,20 @@ public class UCTAgent
         // debuge print statement
         System.out.println("search start");
 
+        // if the proxyagents is null value
         if (proxyAgents == null) {
+            // then store the number of players in to n
             int n = game.getNumPlayers();
+            // crerate a size n proxyAgent
             proxyAgents = new ProxyAgent[n];
-        
+            
+            // use a for loop to default the proxyAgent; with size n 
             for (int i = 0; i < n; i++) {
+                // get the current actual player's agent index
                 int actualPlayerIdx = game.getPlayerOrder().getAgentIdx(i);
+                // crreate a proxyAgent(use the constructor we just create) for this player
                 proxyAgents[i] = new ProxyAgent(actualPlayerIdx, this.getMaxThinkingTimeInMS());
+                // and set the proxyAgent we just default to a logialplayeridx
                 proxyAgents[i].setLogicalPlayerIdx(i);
             }
         }
@@ -390,8 +398,9 @@ public class UCTAgent
             // ------------ selection ------------
             // if not a leaf node keep running
             // also add a theard is interrupted here to check the timeout
+            // !Thread.currentThread().isInterrupted() && in while loop for testing why timeout
             // therad reference: https://stackoverflow.com/questions/11682955/why-use-thread-currentthread-isinterrupted-instead-of-isinterrupted
-            while (!Thread.currentThread().isInterrupted() && !current.isTerminal()) {
+            while (!current.isTerminal()) {
 
                 // set not visited as -1
                 int  not_visited = -1;
@@ -447,10 +456,11 @@ public class UCTAgent
                 }  
             }
 
-            // break if time out
-            if (Thread.currentThread().isInterrupted()) {
-                break;
-            }
+            // for testing purpose
+            // // break if time out
+            // if (Thread.currentThread().isInterrupted()) {
+            //     break;
+            // }
 
             // debug print
             System.out.println("B");
@@ -545,3 +555,10 @@ public class UCTAgent
 // javac -cp "./lib/*;." @uno.srcs
 // java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain src.pas.uno.agents.UCTAgent src.pas.uno.agents.UCTAgent 
 // java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UCTAgent 
+// --observability {FULL,PARTIAL_NO_DECK,PARTIAL_NO_DECK_NO_HANDS}
+// -m MAXTHINKINGTIMEINMS, --maxThinkingTimeInMS MAXTHINKINGTIMEINMS
+// thinking time (for each player) PER MOVE in milli-
+// seconds. (default: 4688)
+// --colorblind           Use  colorblind-friendly   card   and   asset  set
+// (default: false)
+// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UCTAgent --colorblind true --observability PARTIAL_NO_DECK
