@@ -163,37 +163,45 @@ public class ExpectedOutcomeAgent
         //get the state of the root 
         Node.NodeState state = root.getNodeState() ;
 
-        // maybePlayDrawnCard case
-        if(drawnCardIdx != null){
-            int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
-            int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
-
-            root.setQValueTotal(keepIdx, 0.5f);
-            root.setQCount(keepIdx, 1);
-
-            root.setQValueTotal(playIdx, 0.6f);
-            root.setQCount(playIdx, 1);
-
-            return root;
-    }
-
-        //if there are legal move to play
-        if(state == Node.NodeState.HAS_LEGAL_MOVES){
-            // just mark the first legal move as explored
-            root.setQValueTotal(0, 1.0f);
-            root.setQCount(0, 1);
-            return root;
+        // set the search deadline — leave 30ms buffer so we return in time
+        long timelimit = this.getMaxThinkingTimeInMS() - 30;
+        if(timelimit < 1){
+            timelimit = 1;
         }
+        this.searchDeadlineMS = System.currentTimeMillis() + timelimit;
+
+    //     // maybePlayDrawnCard case
+    //     if(drawnCardIdx != null){
+    //         int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
+    //         int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
+
+    //         root.setQValueTotal(keepIdx, 0.5f);
+    //         root.setQCount(keepIdx, 1);
+
+    //         root.setQValueTotal(playIdx, 0.6f);
+    //         root.setQCount(playIdx, 1);
+
+    //         return root;
+    // }
+
+    //     //if there are legal move to play
+    //     if(state == Node.NodeState.HAS_LEGAL_MOVES){
+    //         // just mark the first legal move as explored
+    //         root.setQValueTotal(0, 1.0f);
+    //         root.setQCount(0, 1);
+    //         return root;
+    //     }
 
         
 
-        // unresolved draw-pile case
-        if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
-            int moveIdx = Node.NoLegalMovesIdxDefaults.DrawUnresolvedCardsIdxs.MOVE_IDX;
-            root.setQValueTotal(moveIdx, 0.5f);
-            root.setQCount(moveIdx, 1);
-            return root;
-    }
+    //     // unresolved draw-pile case
+    //     if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
+    //         int moveIdx = Node.NoLegalMovesIdxDefaults.DrawUnresolvedCardsIdxs.MOVE_IDX;
+    //         root.setQValueTotal(moveIdx, 0.5f);
+    //         root.setQCount(moveIdx, 1);
+    //         return root;
+    // }
+    evaluate(root);
 
     return root;
     }
@@ -305,7 +313,7 @@ public class ExpectedOutcomeAgent
             return 0.0f;
         }
     }
-    
+
     private float heuristic(final Node node) {
         int myIdx = node.getGameView().getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
         int myCards = node.getGameView().getHandView(myIdx).size();
