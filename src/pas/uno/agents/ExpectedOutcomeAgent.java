@@ -400,9 +400,11 @@ public class ExpectedOutcomeAgent
         //change the index to a real inded
         final int playerIdx = node.getGameView().getPlayerOrder().getAgentIdx(cuerrentIdx);
         Agent temp = new Agent(playerIdx, 0){
+            @Override
             public Move chooseCardToPlay(final GameView game){
                 return null;
             }
+            @Override
             public Move maybePlayDrawnCard(final GameView game, final int drawnCardIdx){
                 return null;
             }
@@ -459,7 +461,7 @@ public class ExpectedOutcomeAgent
 
     return best;
 }
-//a helper method to make move for the argMax 
+    //a helper method to make move for the argMax 
     private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
     // Use the current logical player from this game state
         int curLogicalIdx = game.getPlayerOrder().getCurrentLogicalPlayerIdx();
