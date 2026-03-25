@@ -57,7 +57,7 @@ public class ExpectedOutcomeAgent
 
             //so that that the nextGame agent will not be null 
             //create a copy so we dont make change to the parent
-            Game nextGame = new Game(this.getGameView());
+            Game nextGame = new Game(this.getGameView(), dummies);
 
             //now figure out whose turn it is 
             int curLogicalPlayerID = this.getLogicalPlayerIdx();
@@ -228,7 +228,7 @@ public class ExpectedOutcomeAgent
         // get the state of the current node
         Node.NodeState state = node.getNodeState();
 
-        // --- Case 1: player has legal moves ---
+        // Case 1: player has legal moves 
         if(state == Node.NodeState.HAS_LEGAL_MOVES){
             // expand every legal move and evaluate each child
             for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
@@ -258,7 +258,7 @@ public class ExpectedOutcomeAgent
             return node.getUtilityValues();
         }
 
-        // --- Case 2: no legal moves, must draw unresolved pile ---
+        // Case 2: no legal moves, must draw unresolved pile
         if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
             // only one action available: draw the whole unresolved pile
             int moveIdx = Node.NoLegalMovesIdxDefaults.DrawUnresolvedCardsIdxs.MOVE_IDX;
@@ -274,7 +274,7 @@ public class ExpectedOutcomeAgent
             return node.getUtilityValues();
         }
 
-        // --- Case 3: no legal moves, draw one card, then play or keep ---
+        // Case 3: no legal moves, draw one card, then play or keep 
         int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
         int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
 
@@ -290,7 +290,7 @@ public class ExpectedOutcomeAgent
         // evaluate the "play" branch if we still have time
         if(System.currentTimeMillis() < this.searchDeadlineMS){
             // build the move for playing the drawn card
-            Move playDrawn = drawnMove(node);
+            Move playDrawn = DrawnMove(node);
             if(playDrawn != null){
                 Node play = node.getChild(playDrawn);
                 float value = evaluate(play);
@@ -322,10 +322,12 @@ public class ExpectedOutcomeAgent
         //Find the oppent witht fewwst card
         int bestOther = Integer.MAX_VALUE;
         for (int i = 0; i < node.getGameView().getNumPlayers(); i++) {
-            if (i == myIdx) continue;
-            int otherCards = node.getGameView().getHandView(i).size();
-            if (otherCards < bestOther) {
-                bestOther = otherCards;
+            if(i == myIdx){
+                continue;
+            }
+            int other = node.getGameView().getHandView(i).size();
+            if(other < bestOther){
+                bestOther = other;
             }
         }
         //approachwining condition: we are winning if we have fewer cards than every opponent
@@ -470,14 +472,14 @@ public class ExpectedOutcomeAgent
         Card card = hand.getCard(cardIdx);
 
         if(card == null){
-        return null;
+            return null;
         }
         //if the card is a wild card 
         if(card.isWild()){
-        //choose a best color 
-        Color chosenColor = chooseBestWildColor(hand);
-        //use the current agent object as the player making the move
-        return Move.createMove(this, cardIdx, chosenColor);
+            //choose a best color 
+            Color chosenColor = chooseBestWildColor(hand);
+            //use the current agent object as the player making the move
+            return Move.createMove(this, cardIdx, chosenColor);
         }
 
         return Move.createMove(this, cardIdx);
