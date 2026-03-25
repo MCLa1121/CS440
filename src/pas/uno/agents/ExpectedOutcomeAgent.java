@@ -87,49 +87,31 @@ public class ExpectedOutcomeAgent
             //case where we do not have a legal move
             else if(state == NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
                 //we need to draw the entire unresolved pile
-                int Draw = nextGame.getUnresolvedCards().total();
-                nextGame.drawTotal(hand, Draw);
+                int total = nextGame.getUnresolvedCards().total();
+                nextGame.drawTotal(hand, total);
                 //move on to the next player 
                 nextGame.resolveMove(null);
             }
 
             //case where no legal move but draw a card
             else if(state == NodeState.NO_LEGAL_MOVES_MAY_PLAY_DRAWN_CARD){
-                // //drawn one card 
-                // int drawn = nextGame.drawCard(hand);
-                // //if the move is null, we keep the drawn card 
-                // if(move == null){
-                //     nextGame.resolveMove(null);
-                // }else{//otherwise we play the drawn card
-                //     Agent curAgent = nextGame.getAgent(curLogicalPlayerID);
-                //     //get the drawn card 
-                //     Card drawnCard = hand.getCard(drawn);
-                //     //now we need to consider whether the card is a wild card or not
-                //     //if it is, we need to consider the color chosen
-                //     Move actualMove;
-                //     if(drawnCard.isWild()){
-                //         actualMove = Move.createMove(curAgent, drawn, move.getNewColorIfWild());
-                //     }else{
-                //         actualMove = Move.createMove(curAgent, drawn);
-                //     }
-                //     nextGame.resolveMove(actualMove);
-                // }
-                //do not draw again
-                // if move is null, keep the already-drawn card
+                //drawn one card 
+                int drawnIdx = nextGame.drawCard(hand);
+                //get the drawn card 
+                Card drawnCard = hand.getCard(drawnIdx);
 
-                //follow the same logic 
-                if(move == null){
+                //if the move is null, we keep the drawn card 
+                if(move == null || !hand.getLegalMoves(nextGame).contains(drawnIdx)){
                     nextGame.resolveMove(null);
-                }else{
-                    Agent copiedAgent = nextGame.getAgent(curLogicalPlayerID);
-
-                    Card drawnCard = hand.getCard(move.getCardToPlayIdx());
+                }else{//otherwise we play the drawn card
+                    Agent correctAgent = dummies[curLogicalPlayerID];
+                    //now we need to consider whether the card is a wild card or not
+                    //if it is, we need to consider the color chosen
                     Move actualMove;
-
                     if(drawnCard.isWild()){
-                        actualMove = Move.createMove(copiedAgent,move.getCardToPlayIdx(),move.getNewColorIfWild());
+                        actualMove = Move.createMove(correctAgent, drawnIdx, move.getNewColorIfWild());
                     }else{
-                        actualMove = Move.createMove(copiedAgent,move.getCardToPlayIdx());
+                        actualMove = Move.createMove(correctAgent,  drawnIdx);
                     }
                     nextGame.resolveMove(actualMove);
                 }
