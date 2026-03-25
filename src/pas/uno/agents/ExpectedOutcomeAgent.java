@@ -198,6 +198,114 @@ public class ExpectedOutcomeAgent
     return root;
     }
     
+    private float evaluate(final Node node){
+        // Time check FIRST — before any recursive work.
+        // If we are out of time, return the heuristic immediately
+        // so we do not go over the deadline.
+        if(System.currentTimeMillis() >= this.searchDeadlineMS){
+            return heuristic(node);
+        }
+
+        // if this is a terminal node, return the true win/loss value
+        if(node.isTerminal()){
+            return reachTerminal(node.getGameView());
+        }
+
+        // if we have reached the artificial leaf depth,
+        // estimate the value with the heuristic instead of expanding further
+        if(node.getDepth() >= ARTIFICIAL_LEAF_DEPTH){
+            return heuristic(node);
+        }
+
+        // get the state of the current node
+        Node.NodeState state = node.getNodeState();
+
+        // --- Case 1: player has legal moves ---
+        if(state == Node.NodeState.HAS_LEGAL_MOVES){
+            // expand every legal move and evaluate each child
+            for(int moveIdx = 0; moveIdx < node.getOrderedLegalMoves().size(); moveIdx++){
+                // check time before expanding each child
+                if(System.currentTimeMillis() >= this.searchDeadlineMS){
+                    break;
+                }
+
+                // get the card index for this move
+                int cardIdx = node.getOrderedLegalMoves().get(moveIdx);
+
+                // build the move object
+                Move move = makeMove(node, cardIdx);
+
+                // get the child node after applying this move
+                Node child = node.getChild(move);
+
+                // recursively evaluate the child
+                float childValue = evaluate(child);
+
+                // store the q-value and count for this move
+                node.setQValueTotal(moveIdx, childValue);
+                node.setQCount(moveIdx, 1);
+            }
+
+            // return the weighted average utility of all evaluated moves
+            return node.getUtilityValues();
+        }
+
+        // --- Case 2: no legal moves, must draw unresolved pile ---
+        if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
+            // only one action available: draw the whole unresolved pile
+            int moveIdx = Node.NoLegalMovesIdxDefaults.DrawUnresolvedCardsIdxs.MOVE_IDX;
+
+            // get the child and evaluate it
+            Node child = node.getChild(null);
+            float childValue = evaluate(child);
+
+            // store the q-value and count
+            node.setQValueTotal(moveIdx, childValue);
+            node.setQCount(moveIdx, 1);
+
+            return node.getUtilityValues();
+        }
+
+        // --- Case 3: no legal moves, draw one card, then play or keep ---
+        int playIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.PLAY_CARD_MOVE_IDX;
+        int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
+
+        // evaluate the "keep" branch if we still have time
+        if(System.currentTimeMillis() < this.searchDeadlineMS){
+            // null move means keep the drawn card
+            Node keep = node.getChild(null);
+            float keepValue = evaluate(keep);
+            node.setQValueTotal(keepIdx, keepValue);
+            node.setQCount(keepIdx, 1);
+        }
+
+        // evaluate the "play" branch if we still have time
+        if(System.currentTimeMillis() < this.searchDeadlineMS){
+            // build the move for playing the drawn card
+            Move playDrawn = drawnMove(node);
+            if(playDrawn != null){
+                Node play = node.getChild(playDrawn);
+                float value = evaluate(play);
+                node.setQValueTotal(playIdx, value);
+                node.setQCount(playIdx, 1);
+            }
+        }
+
+        return node.getUtilityValues();
+    }
+
+    private float reachTerminal(final GameView game){
+        // find our logical index
+        int myIdx = game.getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
+
+        // we win if our hand is empty
+        if(game.getHandView(myIdx).size() == 0){
+            return 1.0f;
+        } else {
+            return 0.0f;
+        }
+    }
+    
     private float heuristic(final Node node) {
         int myIdx = node.getGameView().getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
         int myCards = node.getGameView().getHandView(myIdx).size();
