@@ -30,11 +30,13 @@ public class ExpectedOutcomeAgent
     
     //testing perpose
     // how deep to expand the explicit tree before doing a rollout
-    private static final int ARTIFICIAL_LEAF_DEPTH = 1;
+    private static final int ARTIFICIAL_LEAF_DEPTH = 3;
 
     // how many rollouts to do
     //private static final int NUM_ITERATIONS = 200;
     private static final int ROLLOUT = 1;
+    // deadline in milliseconds — search must finish before this time
+    private long searchDeadlineMS;
     
 
     public static class MCTSNode
@@ -50,6 +52,8 @@ public class ExpectedOutcomeAgent
         @Override
         public Node getChild(final Move move)
         {
+            //create a dummy agent for the nextGame
+            //so that that the nextGame agent will not be null 
             //create a copy so we dont make change to the parent
             Game nextGame = new Game(this.getGameView());
             //now figure out whose turn it is 
@@ -174,14 +178,6 @@ public class ExpectedOutcomeAgent
         //get the state of the root 
         Node.NodeState state = root.getNodeState() ;
 
-        //if there are legal move to play
-        if(state == Node.NodeState.HAS_LEGAL_MOVES){
-            // just mark the first legal move as explored
-            root.setQValueTotal(0, 1.0f);
-            root.setQCount(0, 1);
-            return root;
-        }
-
         // maybePlayDrawnCard case
         if(drawnCardIdx != null){
             int keepIdx = Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX;
@@ -195,6 +191,16 @@ public class ExpectedOutcomeAgent
 
             return root;
     }
+
+        //if there are legal move to play
+        if(state == Node.NodeState.HAS_LEGAL_MOVES){
+            // just mark the first legal move as explored
+            root.setQValueTotal(0, 1.0f);
+            root.setQCount(0, 1);
+            return root;
+        }
+
+        
 
         // unresolved draw-pile case
         if(state == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT){
@@ -250,7 +256,7 @@ public class ExpectedOutcomeAgent
         //if the node is the root node, we just use that value 
         if(node.getDepth() == 0 && DrawnIDx != null){
             HandView hand = node.getGameView().getHandView(node.getLogicalPlayerIdx());
-            if(this.DrawnIDx >= 0 && this.DrawnIDx != null){
+            if(this.DrawnIDx != null && this.DrawnIDx >= 0){
                 Card drawnCard = hand.getCard(this.DrawnIDx);
                 if(drawnCard.isWild()){
                     Color choseColor = chooseBestWildColor( hand);
@@ -260,6 +266,26 @@ public class ExpectedOutcomeAgent
             }
         }
         return null;
+    }
+    
+    //reimplement dummy agent
+    static Agent[] dummy(final GameView view){
+        Agent[] agents = new Agent[view.getNumPlayers()];
+        for(int logicalIdx = 0; logicalIdx < view.getNumPlayers(); logicalIdx++){
+            final int playerIdx = view.getPlayerOrder().getAgentIdx(logicalIdx);
+            agents[logicalIdx] = new Agent(playerIdx, 0){
+                @Override
+                public Move chooseCardToPlay(final GameView game){
+                    return null;
+                }
+                @Override
+                public Move maybePlayDrawnCard(final GameView game, final int drawnCardIdx){
+                    return null;
+                }
+            };
+            agents[logicalIdx].setLogicalPlayerIdx(logicalIdx);
+        }
+        return agents;
     }
     //make a temp agent for a node
     private Agent tempAgent(final Node node){
@@ -332,7 +358,7 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
     // Use the current logical player from this game state
     int curLogicalIdx = game.getPlayerOrder().getCurrentLogicalPlayerIdx();
 
-    HandView hand = game.getHandView(this.getLogicalPlayerIdx());
+    HandView hand = game.getHandView(curLogicalIdx);
     Card card = hand.getCard(cardIdx);
 
     if(card == null){
@@ -433,7 +459,7 @@ private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
         int cardIdx = node.getOrderedLegalMoves().get(bestMoveIdx);
         return makeMoveFromCardIdx(node.getGameView(), cardIdx);
     }
-    //Orgin
+    //Orgin 
     //javac -cp "./lib/*;." @uno.srcs
     //java -cp ".\lib\*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.ExpectedOutcomeAgent
     //java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain src.pas.uno.agents.ExpectedOutcomeAgent edu.bu.pas.uno.agents.RandomAgent
