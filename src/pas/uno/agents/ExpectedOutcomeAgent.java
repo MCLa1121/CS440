@@ -161,7 +161,7 @@ public class ExpectedOutcomeAgent
         MCTSNode root = new MCTSNode(game, game.getPlayerOrder().getCurrentLogicalPlayerIdx(), null);
         
         //get the state of the root 
-        Node.NodeState state = root.getNodeState() ;
+        //Node.NodeState state = root.getNodeState() ;
 
         // set the search deadline — leave 30ms buffer so we return in time
         long timelimit = this.getMaxThinkingTimeInMS() - 30;
@@ -315,9 +315,11 @@ public class ExpectedOutcomeAgent
     }
 
     private float heuristic(final Node node) {
+        //Find our idx in the game state
         int myIdx = node.getGameView().getPlayerOrder().getLogicalIdx(this.getPlayerIdx());
         int myCards = node.getGameView().getHandView(myIdx).size();
 
+        //Find the oppent witht fewwst card
         int bestOther = Integer.MAX_VALUE;
         for (int i = 0; i < node.getGameView().getNumPlayers(); i++) {
             if (i == myIdx) continue;
@@ -326,10 +328,15 @@ public class ExpectedOutcomeAgent
                 bestOther = otherCards;
             }
         }
-
-    if (myCards < bestOther) return 1.0f;
-    else if (myCards == bestOther) return 0.5f;
-    else return 0.0f;
+        //approachwining condition: we are winning if we have fewer cards than every opponent
+        if (myCards < bestOther) {
+            return 1.0f;
+        }else if (myCards == bestOther){
+            return 0.5f;
+        } 
+        else{
+            return 0.0f;
+        } 
 }
     
 
@@ -353,18 +360,16 @@ public class ExpectedOutcomeAgent
     //a helper method for a player want to play the drawn card
     private Move DrawnMove(final Node node){
         //make a temp agent for the player who is playing this turn 
-        Agent tempAgent = tempAgent(node);
+        //Agent tempAgent = tempAgent(node);
         //if the node is the root node, we just use that value 
-        if(node.getDepth() == 0 && DrawnIDx != null){
+        if(node.getDepth() == 0 && this.DrawnIDx != null && this.DrawnIDx >= 0){
             HandView hand = node.getGameView().getHandView(node.getLogicalPlayerIdx());
-            if(this.DrawnIDx != null && this.DrawnIDx >= 0){
-                Card drawnCard = hand.getCard(this.DrawnIDx);
-                if(drawnCard.isWild()){
-                    Color choseColor = chooseBestWildColor( hand);
-                    return Move.createMove(tempAgent, this.DrawnIDx, choseColor);
-                }
-                return Move.createMove(tempAgent, this.DrawnIDx);
+            Card drawnCard = hand.getCard(this.DrawnIDx);
+            Agent tempAgent = tempAgent(node);
+            if(drawnCard.isWild()){
+                return Move.createMove(tempAgent, this.DrawnIDx, chooseBestWildColor(hand));
             }
+                return Move.createMove(tempAgent, this.DrawnIDx);
         }
         return null;
     }
