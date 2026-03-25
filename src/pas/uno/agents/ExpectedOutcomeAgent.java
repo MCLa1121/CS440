@@ -53,32 +53,35 @@ public class ExpectedOutcomeAgent
         public Node getChild(final Move move)
         {
             //create a dummy agent for the nextGame
+            Agent[] dummies = ExpectedOutcomeAgent.dummy(this.getGameView());
+
             //so that that the nextGame agent will not be null 
             //create a copy so we dont make change to the parent
             Game nextGame = new Game(this.getGameView());
+
             //now figure out whose turn it is 
             int curLogicalPlayerID = this.getLogicalPlayerIdx();
+
             //get the current player's hand 
             Hand hand = nextGame.getHand(curLogicalPlayerID);
+
             //we need to know what state we are curently at
             Node.NodeState state = this.getNodeState();
 
             //now condider the three different cases
             //the case which the player has a legal move
             if(state == NodeState.HAS_LEGAL_MOVES){
-                //copy a agent 
-                Agent copiedAgent = nextGame.getAgent(curLogicalPlayerID);
-                //get the hand card 
-                Card chosenCard = hand.getCard(move.getCardToPlayIdx());
-                Move actualMove;
-                //if the card is a wild card we assign the move with a color 
-                if(chosenCard.isWild()){
-                    actualMove = Move.createMove(copiedAgent,move.getCardToPlayIdx(),move.getNewColorIfWild());
-                }else{
-                    actualMove = Move.createMove(copiedAgent,move.getCardToPlayIdx());
+                //use the copied agent
+                Agent correctAgent = dummies[curLogicalPlayerID];
+                Move correctedMove;
+                
+                // rebuild the move with the correct agent
+                if(move.getNewColorIfWild() != null){
+                    correctedMove = Move.createMove(correctAgent, move.getCardToPlayIdx(), move.getNewColorIfWild());
+                } else {
+                    correctedMove = Move.createMove(correctAgent, move.getCardToPlayIdx());
                 }
-                //reolove the move 
-                nextGame.resolveMove(actualMove);       
+                nextGame.resolveMove(correctedMove);
             }
 
             //case where we do not have a legal move
@@ -354,26 +357,26 @@ public class ExpectedOutcomeAgent
     return best;
 }
 //a helper method to make move for the argMax 
-private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
+    private Move makeMoveFromCardIdx(final GameView game, final int cardIdx){
     // Use the current logical player from this game state
-    int curLogicalIdx = game.getPlayerOrder().getCurrentLogicalPlayerIdx();
+        int curLogicalIdx = game.getPlayerOrder().getCurrentLogicalPlayerIdx();
 
-    HandView hand = game.getHandView(curLogicalIdx);
-    Card card = hand.getCard(cardIdx);
+        HandView hand = game.getHandView(curLogicalIdx);
+        Card card = hand.getCard(cardIdx);
 
-    if(card == null){
+        if(card == null){
         return null;
-    }
-    //if the card is a wild card 
-    if(card.isWild()){
+        }
+        //if the card is a wild card 
+        if(card.isWild()){
         //choose a best color 
         Color chosenColor = chooseBestWildColor(hand);
         //use the current agent object as the player making the move
         return Move.createMove(this, cardIdx, chosenColor);
-    }
+        }
 
-    return Move.createMove(this, cardIdx);
-}
+        return Move.createMove(this, cardIdx);
+    }
     
     /**
      * A method to argmax the Q values inside a {@link Node}
