@@ -165,12 +165,12 @@ public class UCTAgent
 
         // while the game is not over keep playing
         // bug: might be the simualation is too mluch make it smaller
-        // int size = 0;
+        int size = 0;
 
         // need to make rollout cheaper for testing
         // if we have not finished simualting game
-        while (!simulation_game.isOver()) {
-            // size ++; testing purpose
+        while (!Thread.currentThread().isInterrupted() && !simulation_game.isOver() && size < 20) {
+            size ++;
             // get the current player index, and get the current card in hand, and set move to null
             int current_player_index = simulation_game.getPlayerOrder().getCurrentLogicalPlayerIdx();
             Hand current_card_hand = simulation_game.getHand(current_player_index);
@@ -380,7 +380,7 @@ public class UCTAgent
         long budget = Math.max(1, this.getMaxThinkingTimeInMS()/4); 
 
         //---------- while we still have budget to think keep loop running ----------
-        while (System.currentTimeMillis() - Start_of_thinking_time < budget) {
+        while (!Thread.currentThread().isInterrupted() && System.currentTimeMillis() - Start_of_thinking_time < budget) {
             // iterate_count++;
             Node current = root_node; 
 
