@@ -553,12 +553,11 @@ public class UnoMCTSAgent
 
 
 // javac -cp "./lib/*;." @uno.srcs
-// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain src.pas.uno.agents.UCTAgent src.pas.uno.agents.UCTAgent 
-// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UCTAgent 
+// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UnoMCTSAgent 
 // --observability {FULL,PARTIAL_NO_DECK,PARTIAL_NO_DECK_NO_HANDS}
 // -m MAXTHINKINGTIMEINMS, --maxThinkingTimeInMS MAXTHINKINGTIMEINMS
 // thinking time (for each player) PER MOVE in milli-
 // seconds. (default: 4688)
 // --colorblind           Use  colorblind-friendly   card   and   asset  set
 // (default: false)
-// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UCTAgent --colorblind true --observability PARTIAL_NO_DECK
+// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain --colorblind -o PARTIAL_NO_DECK_NO_HANDS edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UnoMCTSAgent
