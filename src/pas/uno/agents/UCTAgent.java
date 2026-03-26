@@ -3,6 +3,7 @@ package src.pas.uno.agents;
 
 // SYSTEM IMPORTS
 import edu.bu.pas.uno.Card;
+import edu.bu.pas.uno.Deck;
 import edu.bu.pas.uno.Game;
 import edu.bu.pas.uno.Game.GameView;
 import edu.bu.pas.uno.Hand;
@@ -67,8 +68,16 @@ public class UCTAgent
         @Override
         public Node getChild(final Move move)
         {
-            // set up a simulation 
-            Game simulation = new Game(this.getGameView(), this.simulationAgents);
+            // The deck is always face-down (UNKNOWN) even in full observability.
+            // Use the determinization constructor: provide a concrete full Deck and
+            // reconstruct Hand[] from the view so no UNKNOWN cards reach the Game object.
+            GameView view = this.getGameView();
+            int numPlayers = view.getNumPlayers();
+            Hand[] hands = new Hand[numPlayers];
+            for (int i = 0; i < numPlayers; i++) {
+                hands[i] = new Hand(view.getHandView(i));
+            }
+            Game simulation = new Game(new Deck(true), hands, view, this.simulationAgents);
             // get the current player index
             int current_player_index = this.getLogicalPlayerIdx();
             // get current hand from the current player
@@ -97,10 +106,9 @@ public class UCTAgent
             // get the next state of the simulatoin (the current player index)
             int next_state = simulation.getPlayerOrder().getCurrentLogicalPlayerIdx();
 
-            // get the next player id
-            int next_player_id = simulation.getPlayerOrder().getAgentIdx(next_state);
-            // return a mctsnode after we get the next state 
-            MCTSNode mctsnode = new MCTSNode(simulation.getView(next_player_id), next_state, this, this.simulationAgents,null);
+            // Store the omniscient view so child nodes also have no UNKNOWN cards,
+            // allowing further getChild calls to succeed with the determinization constructor.
+            MCTSNode mctsnode = new MCTSNode(simulation.getOmniscientView(), next_state, this, this.simulationAgents, null);
             // System.out.println("getChild end");
             return mctsnode;
         }
@@ -160,8 +168,13 @@ public class UCTAgent
 
     // private helper -------------help to rollout
     private float rollout(GameView gameview) {
-        // set a simulation game
-        Game simulation_game = new Game(gameview,proxyAgents);
+        // Use determinization constructor: deck is always UNKNOWN even in full observability.
+        int _n = gameview.getNumPlayers();
+        Hand[] _hands = new Hand[_n];
+        for (int _i = 0; _i < _n; _i++) {
+            _hands[_i] = new Hand(gameview.getHandView(_i));
+        }
+        Game simulation_game = new Game(new Deck(true), _hands, gameview, proxyAgents);
 
         // while the game is not over keep playing
         // bug: might be the simualation is too mluch make it smaller
