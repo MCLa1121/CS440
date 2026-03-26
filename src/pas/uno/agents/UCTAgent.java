@@ -77,22 +77,22 @@ public class UCTAgent
             // if the unrealoved draw is avalilble
             if (this.getNodeState() == Node.NodeState.NO_LEGAL_MOVES_UNRESOLVED_CARDS_PRESENT) {
                 // player need to draw the total
-                System.out.println("getChild unresolved");
+                // System.out.println("getChild unresolved");
 
                 simulation.drawTotal(current_hand,simulation.getUnresolvedCards().total());
                 
-                System.out.println("before resolveMove null");
+                // System.out.println("before resolveMove null");
                 
                 simulation.resolveMove(null);
 
-                System.out.println("after resolveMove null");
+                // System.out.println("after resolveMove null");
             } else {
 
-                System.out.println("before resolveMove move");
+                // System.out.println("before resolveMove move");
                 // then we move to reslovedmove null
                 // resolved move apply one time (if use a while loop here the agent will do noting)
                 simulation.resolveMove(move);
-                System.out.println("after resolveMove move");
+                // System.out.println("after resolveMove move");
             }
             // get the next state of the simulatoin (the current player index)
             int next_state = simulation.getPlayerOrder().getCurrentLogicalPlayerIdx();
@@ -101,7 +101,7 @@ public class UCTAgent
             int next_player_id = simulation.getPlayerOrder().getAgentIdx(next_state);
             // return a mctsnode after we get the next state 
             MCTSNode mctsnode = new MCTSNode(simulation.getView(next_player_id), next_state, this, this.simulationAgents,null);
-            System.out.println("getChild end");
+            // System.out.println("getChild end");
             return mctsnode;
         }
     }
@@ -336,7 +336,7 @@ public class UCTAgent
         // add a itration control because it continue to timeout
         // int iterate_count = 0;
         // debuge print statement
-        System.out.println("search start");
+        // System.out.println("search start");
 
         // if the proxyagents is null value
         if (proxyAgents == null) {
@@ -356,7 +356,7 @@ public class UCTAgent
             }
         }
         
-        try {
+        // try {
         // Bug: getlogicalPlayerIdx(); change it to game.getplayerOrder().getCurrentLogicalPlayerIdx()
         int player_root_index = game.getPlayerOrder().getCurrentLogicalPlayerIdx();
 
@@ -370,20 +370,17 @@ public class UCTAgent
             root_node.setQValueTotal(Node.NoLegalMovesIdxDefaults.DrawSingleCardIdxs.KEEP_CARD_MOVE_IDX, 0.0f);
             
             // debug print statement
-            System.out.println("early root return");
+            // System.out.println("early root return");
 
             // reutn the roo node
             return root_node; 
         }
         
         long Start_of_thinking_time = System.currentTimeMillis();
-        long budget = Math.max(1, this.getMaxThinkingTimeInMS()/2); 
-
-
+        long budget = Math.max(1, this.getMaxThinkingTimeInMS()/4); 
 
         //---------- while we still have budget to think keep loop running ----------
-        // add theread to check if my agent timeout 
-        while (!Thread.currentThread().isInterrupted() && System.currentTimeMillis() - Start_of_thinking_time < budget) {
+        while (System.currentTimeMillis() - Start_of_thinking_time < budget) {
             // iterate_count++;
             Node current = root_node; 
 
@@ -393,13 +390,10 @@ public class UCTAgent
             node_path.add(current);
 
             // debug print
-            System.out.println("A");
+            // System.out.println("A");
 
             // ------------ selection ------------
             // if not a leaf node keep running
-            // also add a theard is interrupted here to check the timeout
-            // !Thread.currentThread().isInterrupted() && in while loop for testing why timeout
-            // therad reference: https://stackoverflow.com/questions/11682955/why-use-thread-currentthread-isinterrupted-instead-of-isinterrupted
             while (!current.isTerminal()) {
 
                 // set not visited as -1
@@ -463,13 +457,13 @@ public class UCTAgent
             // }
 
             // debug print
-            System.out.println("B");
+            // System.out.println("B");
 
             // ----------- Rollout --------------
             float rollout_value = rollout(current.getGameView());
 
             // debug print
-            System.out.println("C");
+            // System.out.println("C");
 
             // ----------- Backpropagation ---------
             backpropagate(node_path, move_path, rollout_value);
@@ -480,10 +474,10 @@ public class UCTAgent
 
         // return root_node after we done
         return root_node;
-    } finally {
-        // System.out.println("iterations = " + iterate_count);
-        System.out.println("search end");
-    }
+    // } finally {
+    //     // System.out.println("iterations = " + iterate_count);
+    //     System.out.println("search end");
+    // }
 
     }
 
