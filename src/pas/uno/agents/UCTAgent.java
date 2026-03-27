@@ -568,4 +568,4 @@ public class UCTAgent
 // seconds. (default: 4688)
 // --colorblind           Use  colorblind-friendly   card   and   asset  set
 // (default: false)
-// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UCTAgent --colorblind true --observability PARTIAL_NO_DECK
+// java -cp "./lib/*;." edu.bu.pas.uno.SingleGameMain edu.bu.pas.uno.agents.RandomAgent src.pas.uno.agents.UnoMCTSAgent --colorblind true --observability PARTIAL_NO_DECK_NO_HANDS
