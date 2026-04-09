@@ -284,20 +284,20 @@ public class DecisionTreeModel
                         }
                 }
 
-            Collections.sort(seenValues);
+                Collections.sort(seenValues);
 
-            double conditionalEntropy = 0.0;
+                double conditionalEntropy = 0.0;
 
-            // for each discrete value v, compute Pr[f = v] * H(Y | f = v)
-            for(double val : seenValues){
-                List<Integer> matchingRows = new ArrayList<Integer>();
+                // for each discrete value v, compute Pr[f = v] * H(Y | f = v)
+                for(double val : seenValues){
+                    List<Integer> matchingRows = new ArrayList<Integer>();
 
-                // collect the training examples whose feature value equals v
-                for(int row = 0; row < X.getShape().numRows(); ++row){
-                    if(X.get(row, colIdx) == val){
-                        matchingRows.add(row);
+                    // collect the training examples whose feature value equals v
+                    for(int row = 0; row < X.getShape().numRows(); ++row){
+                        if(X.get(row, colIdx) == val){
+                            matchingRows.add(row);
+                        }
                     }
-                }
 
                 Matrix childY = this.sliceRows(y_gt, matchingRows);
                 double prob = ((double)matchingRows.size()) / n;
@@ -312,8 +312,67 @@ public class DecisionTreeModel
             }
             return new Pair<Double, Matrix>(conditionalEntropy, splitMatrix);
         }
-        
+        // case 2: continuous feature
+        // try candidate thresholds and keep the one with minimum weighted entropy
+        List<Double> uniqueVals = new ArrayList<Double>();
+
+        for(int row = 0; row < X.getShape().numRows(); ++row){
+            double val = X.get(row, colIdx);
+
+            if(!uniqueVals.contains(val)){
+                uniqueVals.add(val);
+        }
     }
+
+        Collections.sort(uniqueVals);
+
+        double bestEntropy = Double.POSITIVE_INFINITY;
+        double bestThreshold = uniqueVals.get(0);
+
+        // test each observed value as a threshold:
+        // left child = values <= threshold, right child = values > threshold
+        for(int i = 0; i < uniqueVals.size() - 1; ++i){
+            double threshold = uniqueVals.get(i);
+
+            List<Integer> leftRows = new ArrayList<Integer>();
+            List<Integer> rightRows = new ArrayList<Integer>();
+
+            // split the training rows according to the current threshold
+            for(int row = 0; row < X.getShape().numRows(); ++row){
+                if(X.get(row, colIdx) <= threshold){
+                    leftRows.add(row);
+                }else{
+                    rightRows.add(row);
+            }
+        }
+
+        double leftProb = ((double)leftRows.size()) / n;
+        double rightProb = ((double)rightRows.size()) / n;
+
+        Matrix leftY = this.sliceRows(y_gt, leftRows);
+        Matrix rightY = this.sliceRows(y_gt, rightRows);
+
+        double curEntropy = leftProb * this.entropy(leftY) + rightProb * this.entropy(rightY);
+
+        // keep the threshold that makes the two child label sets as pure as possible
+        if(curEntropy < bestEntropy){
+            bestEntropy = curEntropy;
+            bestThreshold = threshold;
+        }
+    }
+
+    // if every training example has the same feature value,
+    // then this continuous feature cannot actually separate the data
+    if(uniqueVals.size() == 1){
+        bestEntropy = this.entropy(y_gt);
+        bestThreshold = uniqueVals.get(0);
+    }
+
+    Matrix splitMatrix = Matrix.zeros(1, 1);
+    splitMatrix.set(0, 0, bestThreshold);
+
+    return new Pair<Double, Matrix>(bestEntropy, splitMatrix);
+}
 
         // TODO: complete me!
         @Override
