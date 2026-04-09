@@ -11,6 +11,7 @@ import edu.bu.labs.doppeltree.models.Model;
 
 // JAVA PROJECT IMPORTS
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -258,7 +259,7 @@ public class DecisionTreeModel
             }   
         }
 
-    return bestFeatureIdx;
+            return bestFeatureIdx;
         }
 
         // TODO: complete me!
@@ -266,8 +267,53 @@ public class DecisionTreeModel
                                                            final Matrix y_gt,
                                                            final int colIdx) throws Exception
         {
-            return null;
+            Feature feature = this.getFeatureHeader().getFeature(colIdx);
+            int n = X.getShape().numRows();
+
+            // case 1: discrete feature
+            // create one branch for each distinct value seen in this column
+            if(feature.getFeatureType().equals(FeatureType.DISCRETE)){
+                List<Double> seenValues = new ArrayList<Double>();
+
+                // collect all distinct values that appear in this feature column
+                for(int row = 0; row < X.getShape().numRows(); ++row){
+                    double val = X.get(row, colIdx);
+
+                    if(!seenValues.contains(val)){
+                        seenValues.add(val);
+                        }
+                }
+
+            Collections.sort(seenValues);
+
+            double conditionalEntropy = 0.0;
+
+            // for each discrete value v, compute Pr[f = v] * H(Y | f = v)
+            for(double val : seenValues){
+                List<Integer> matchingRows = new ArrayList<Integer>();
+
+                // collect the training examples whose feature value equals v
+                for(int row = 0; row < X.getShape().numRows(); ++row){
+                    if(X.get(row, colIdx) == val){
+                        matchingRows.add(row);
+                    }
+                }
+
+                Matrix childY = this.sliceRows(y_gt, matchingRows);
+                double prob = ((double)matchingRows.size()) / n;
+
+                conditionalEntropy += prob * this.entropy(childY);
+            }
+
+            // return the branch labels in the same order children will later be built
+            Matrix splitMatrix = Matrix.zeros(seenValues.size(), 1);
+            for(int i = 0; i < seenValues.size(); ++i){
+                splitMatrix.set(i, 0, seenValues.get(i));
+            }
+            return new Pair<Double, Matrix>(conditionalEntropy, splitMatrix);
         }
+        
+    }
 
         // TODO: complete me!
         @Override
