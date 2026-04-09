@@ -378,7 +378,33 @@ public class DecisionTreeModel
         @Override
         public int predict(final Matrix x)
         {
-            return -1;
+            // discrete feature:
+            // find the child whose split value matches x[featureIdx]
+            if(this.getFeatureType().equals(FeatureType.DISCRETE)){
+                double val = x.get(0, this.getFeatureIdx());
+
+                for(int i = 0; i < this.getSplitValues().size(); ++i){
+                    if(this.getSplitValues().get(i) == val){
+                        return this.getChildren().get(i).predict(x);
+                    }
+                }
+
+                // test example has a discrete value that never appeared in training at this node
+                // fall back to this node's majority class
+                return this.getMajorityClass();
+            }
+
+            // continuous feature:
+            // send x to the left child if x <= threshold, otherwise to the right child
+            double threshold = this.getSplitValues().get(0);
+            double val = x.get(0, this.getFeatureIdx());
+
+            if(val <= threshold){
+                return this.getChildren().get(0).predict(x);
+            }
+            else{
+                return this.getChildren().get(1).predict(x);
+            }
         }
 
         // TODO: complete me!
