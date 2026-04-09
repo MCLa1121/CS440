@@ -176,6 +176,34 @@ public class DecisionTreeModel
         // make sure we add children in the correct order when we use this!
         public void addChild(final Node n) { this.getChildren().add(n); }
 
+        // compute the entropy of the label column y
+        // this tells us how mixed the classes are at the current node
+        private double entropy(final Matrix y){
+            int n = y.getShape().numRows();
+
+            // no examples means no uncertainty
+            if(n == 0){
+                return 0.0;
+            }
+
+            Pair<Matrix, Matrix> uniqueYGtAndCounts = y.unique();
+            Matrix counts = uniqueYGtAndCounts.second();
+
+            double h = 0.0;
+
+            // entropy = - sum over classes of p(class) * log2(p(class))
+            for(int row = 0; row < counts.getShape().numRows(); ++row){
+                double p = counts.get(row, 0) / n;
+
+                // only include classes that actually appear in this subset
+                if(p > 0.0){
+                    h -= p * (Math.log(p) / Math.log(2.0));
+                }
+            }
+
+            return h;
+        }
+
 
         // TODO: complete me!
         private int pickBestFeature(final Matrix X,
