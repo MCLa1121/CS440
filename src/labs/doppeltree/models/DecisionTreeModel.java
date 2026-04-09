@@ -176,6 +176,7 @@ public class DecisionTreeModel
         // make sure we add children in the correct order when we use this!
         public void addChild(final Node n) { this.getChildren().add(n); }
 
+        // helper method add 
         // compute the entropy of the label column y
         // this tells us how mixed the classes are at the current node
         private double entropy(final Matrix y){
@@ -200,10 +201,25 @@ public class DecisionTreeModel
                     h -= p * (Math.log(p) / Math.log(2.0));
                 }
             }
-
             return h;
         }
 
+        // build a new matrix that contains only the rows whose indices are listed in rowIdxs
+        // use this to fmaintain the X and y datasets for each child after a split
+        private Matrix sliceRows(final Matrix src, final List<Integer> rowIdxs){
+            Matrix out = Matrix.zeros(rowIdxs.size(), src.getShape().numCols());
+
+            // copy each selected row from src into the output matrix
+            for(int r = 0; r < rowIdxs.size(); ++r){
+                int srcRow = rowIdxs.get(r);
+
+                for(int c = 0; c < src.getShape().numCols(); ++c){
+                    out.set(r, c, src.get(srcRow, c));
+                }
+            }
+
+            return out;
+}
 
         // TODO: complete me!
         private int pickBestFeature(final Matrix X,
