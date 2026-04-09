@@ -411,8 +411,54 @@ public class DecisionTreeModel
         @Override
         public List<Pair<Matrix, Matrix> > getChildData() throws Exception
         {
-            return null;
-        }
+            List<Pair<Matrix, Matrix> > childData = new ArrayList<Pair<Matrix, Matrix> >();
+
+            // build the training set for each child of this node
+            if(this.getFeatureType().equals(FeatureType.DISCRETE)){
+                // one child dataset for each observed discrete feature value
+                for(double splitVal : this.getSplitValues()){
+                    List<Integer> rows = new ArrayList<Integer>();
+
+                    // collect all rows whose chosen feature exactly matches splitVal
+                    for(int row = 0; row < this.getX().getShape().numRows(); ++row){
+                        if(this.getX().get(row, this.getFeatureIdx()) == splitVal){
+                            rows.add(row);
+                        }
+                    }
+
+                    Matrix childX = this.sliceRows(this.getX(), rows);
+                    Matrix childY = this.sliceRows(this.getY(), rows);
+
+                    childData.add(new Pair<Matrix, Matrix>(childX, childY));
+                }
+            }else{
+                // continuous feature always creates exactly two child datasets
+                double threshold = this.getSplitValues().get(0);
+
+                List<Integer> leftRows = new ArrayList<Integer>();
+                List<Integer> rightRows = new ArrayList<Integer>();
+
+                // rows with feature <= threshold go left, the rest go right
+                for(int row = 0; row < this.getX().getShape().numRows(); ++row){
+                    if(this.getX().get(row, this.getFeatureIdx()) <= threshold){
+                        leftRows.add(row);
+                    }
+                    else{
+                        rightRows.add(row);
+                    }
+                }
+                
+                Matrix leftX = this.sliceRows(this.getX(), leftRows);
+                Matrix leftY = this.sliceRows(this.getY(), leftRows);
+                Matrix rightX = this.sliceRows(this.getX(), rightRows);
+                Matrix rightY = this.sliceRows(this.getY(), rightRows);
+
+                childData.add(new Pair<Matrix, Matrix>(leftX, leftY));
+                childData.add(new Pair<Matrix, Matrix>(rightX, rightY));
+            }
+
+            return childData;
+            }
 
     }
 
