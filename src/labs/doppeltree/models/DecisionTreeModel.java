@@ -447,7 +447,7 @@ public class DecisionTreeModel
                         rightRows.add(row);
                     }
                 }
-                
+
                 Matrix leftX = this.sliceRows(this.getX(), leftRows);
                 Matrix leftY = this.sliceRows(this.getY(), leftRows);
                 Matrix rightX = this.sliceRows(this.getX(), rightRows);
@@ -479,7 +479,45 @@ public class DecisionTreeModel
     // TODO: complete me!
     private Node dfsBuild(Matrix X, Matrix y_gt, Set<Integer> availableColIdxs) throws Exception
     {
-        return null;
+        Pair<Matrix, Matrix> uniqueYGtAndCounts = y_gt.unique();
+        Matrix uniqueLabels = uniqueYGtAndCounts.first();
+
+        // stop splitting if every example at this node has the same class label
+        // this node is already pure, so a leaf is enough
+        if(uniqueLabels.getShape().numRows() == 1){
+            return new LeafNode(X, y_gt, this.getFeatureHeader());
+        }
+
+        // stop splitting if there are no remaining legal features to branch on
+        // at this point the best we can do is predict the majority class
+        if(availableColIdxs.isEmpty()){
+            return new LeafNode(X, y_gt, this.getFeatureHeader());
+        }
+
+        // otherwise create an interior node that chooses its best feature immediately
+        InteriorNode node = new InteriorNode(X, y_gt, this.getFeatureHeader(), availableColIdxs);
+        List<Pair<Matrix, Matrix> > childData = node.getChildData();
+
+        // if the chosen feature did not produce a usable split, convert this node to a leaf
+        if(childData == null || childData.size() <= 1){
+            return new LeafNode(X, y_gt, this.getFeatureHeader());
+        }
+
+        // recursively build one child subtree for each child dataset returned by the split
+        for(Pair<Matrix, Matrix> childPair : childData){
+            Matrix childX = childPair.first();
+            Matrix childY = childPair.second();
+
+            // guard against bad splits that produce an empty child dataset
+            // if that happens, do not keep splitting this node
+            if(childX.getShape().numRows() == 0){
+                return new LeafNode(X, y_gt, this.getFeatureHeader());
+            }
+
+            Node childNode = this.dfsBuild(childX, childY, node.getChildColIdxs());
+            node.addChild(childNode);
+        }
+        return node;
     }
 
     // did this for you, feel free to change the printouts if you want
@@ -513,3 +551,6 @@ public class DecisionTreeModel
         return this.getRoot().predict(featureVec);
     }
 }
+//test 
+//javac -cp "./lib/*;." @doppeltree.srcs
+//java -cp "./lib/*;./src" edu.bu.labs.doppeltree.Main labs.doppeltree.models.DecisionTreeModel
