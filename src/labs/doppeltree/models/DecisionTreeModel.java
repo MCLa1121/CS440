@@ -182,7 +182,39 @@ public class DecisionTreeModel
                                     final Matrix y_gt,
                                     final Set<Integer> availableColIdxs)
         {
-            return -1;
+            double bestConditionalEntropy = Double.POSITIVE_INFINITY;
+            int bestFeatureIdx = -1;
+            Matrix bestSplitMatrix = null;
+
+            // try every legal feature and keep the one with the best split
+            for(Integer colIdx : availableColIdxs){
+                try{
+                    Pair<Double, Matrix> result = this.getConditionalEntropy(X, y_gt, colIdx);
+                    double conditionalEntropy = result.first();
+                    Matrix splitMatrix = result.second();
+
+                    // smaller conditional entropy means larger information gain
+                    if(conditionalEntropy < bestConditionalEntropy){
+                        bestConditionalEntropy = conditionalEntropy;
+                        bestFeatureIdx = colIdx;
+                        bestSplitMatrix = splitMatrix;
+                    }
+        }
+        catch(Exception e){
+            e.printStackTrace();
+        }
+    }
+
+        // save the split values for the feature we picked
+        this.getSplitValues().clear();
+
+        if(bestSplitMatrix != null){
+            for(int r = 0; r < bestSplitMatrix.getShape().numRows(); ++r){
+                this.getSplitValues().add(bestSplitMatrix.get(r, 0));
+            }   
+        }
+
+    return bestFeatureIdx;
         }
 
         // TODO: complete me!
