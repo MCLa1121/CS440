@@ -30,6 +30,7 @@ public class DecisionTreeModel
         private Matrix y_gt;
         private FeatureHeader featureHeader;
 
+
         public Node(final Matrix X,
                     final Matrix y_gt,
                     final FeatureHeader featureHeader)
@@ -492,12 +493,29 @@ public class DecisionTreeModel
     public Node getRoot() { return this.root; }
     private void setRoot(Node n) { this.root = n; }
 
+    //for EC Part
+    private static final int MAX_DEPTH = 4;          // stop the tree from getting too deep
+    private static final int MIN_SAMPLES_TO_SPLIT = 50; // stop splitting very small datasets
+
     // TODO: complete me!
     private Node dfsBuild(Matrix X, Matrix y_gt, Set<Integer> availableColIdxs) throws Exception
     {
+        return this.dfsBuildHelper(X, y_gt, availableColIdxs, 0);
+    }
+
+    // helper method for extra credit pruning
+    private Node dfsBuildHelper(Matrix X, Matrix y_gt, Set<Integer> availableColIdxs, int depth) throws Exception
+    {
         Pair<Matrix, Matrix> uniqueYGtAndCounts = y_gt.unique();
         Matrix uniqueLabels = uniqueYGtAndCounts.first();
-
+        int numRows = X.getShape().numRows();
+    //for extra part, change it to a purning one
+    /*
+    General idea:
+    stop if the tree is too deep
+    stop if the node has too few rows
+    then make a leaf instead of splitting more
+    */
         // base case 1:
         // if all labels at this node are the same, this node is pure
         // so we stop splitting and make a leaf
@@ -509,6 +527,18 @@ public class DecisionTreeModel
         // if there are no legal features left, we cannot split anymore
         // so we make a leaf that predicts the majority class
         if(availableColIdxs.isEmpty()){
+            return new LeafNode(X, y_gt, this.getFeatureHeader());
+        }
+
+        // extra credit pruning 1:
+        // if the tree is already too deep, stop splitting here
+        if(depth >= MAX_DEPTH){
+            return new LeafNode(X, y_gt, this.getFeatureHeader());
+        }
+
+        // extra credit pruning 2:
+        // if this node has too few rows, stop splitting here
+        if(numRows < MIN_SAMPLES_TO_SPLIT){
             return new LeafNode(X, y_gt, this.getFeatureHeader());
         }
 
@@ -533,7 +563,7 @@ public class DecisionTreeModel
                 return new LeafNode(X, y_gt, this.getFeatureHeader());
             }
 
-            Node childNode = this.dfsBuild(childX, childY, node.getChildColIdxs());
+            Node childNode = this.dfsBuildHelper(childX, childY, node.getChildColIdxs(), depth + 1);
             node.addChild(childNode);
         }
         return node;
