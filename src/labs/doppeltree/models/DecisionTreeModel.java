@@ -213,7 +213,7 @@ public class DecisionTreeModel
             // copy each selected row from src into the output matrix
             for(int r = 0; r < rowIdxs.size(); ++r){
                 int srcRow = rowIdxs.get(r);
-
+                // copy every column in that row
                 for(int c = 0; c < src.getShape().numCols(); ++c){
                     out.set(r, c, src.get(srcRow, c));
                 }
@@ -223,6 +223,11 @@ public class DecisionTreeModel
 }
 
         // TODO: complete me!
+        /*general idea 
+        // choose the best feature from the legal features
+        // best means the feature with the smallest conditional entropy
+        // this is the same as the largest information gain
+         */
         private int pickBestFeature(final Matrix X,
                                     final Matrix y_gt,
                                     final Set<Integer> availableColIdxs)
@@ -249,8 +254,9 @@ public class DecisionTreeModel
             e.printStackTrace();
         }
     }
-
-        // save the split values for the feature we picked
+        // store the split values of the best feature in this node
+        // if the feature is discrete, these are the distinct values
+        // if the feature is continuous, this will be one threshold
         this.getSplitValues().clear();
 
         if(bestSplitMatrix != null){
@@ -283,7 +289,7 @@ public class DecisionTreeModel
                         seenValues.add(val);
                         }
                 }
-
+                // sort the values so the split order stays consistent
                 Collections.sort(seenValues);
 
                 double conditionalEntropy = 0.0;
@@ -298,14 +304,16 @@ public class DecisionTreeModel
                             matchingRows.add(row);
                         }
                     }
-
+                // the child label set for this branch
                 Matrix childY = this.sliceRows(y_gt, matchingRows);
+                // probability that a row goes to this branch
                 double prob = ((double)matchingRows.size()) / n;
 
                 conditionalEntropy += prob * this.entropy(childY);
             }
 
-            // return the branch labels in the same order children will later be built
+            // store the split values
+            // each row in splitMatrix represents one branch value
             Matrix splitMatrix = Matrix.zeros(seenValues.size(), 1);
             for(int i = 0; i < seenValues.size(); ++i){
                 splitMatrix.set(i, 0, seenValues.get(i));
@@ -316,6 +324,8 @@ public class DecisionTreeModel
         // try candidate thresholds and keep the one with minimum weighted entropy
         List<Double> uniqueVals = new ArrayList<Double>();
 
+        //same logic with case 1:
+        // collect all different values in this column
         for(int row = 0; row < X.getShape().numRows(); ++row){
             double val = X.get(row, colIdx);
 
@@ -323,14 +333,14 @@ public class DecisionTreeModel
                 uniqueVals.add(val);
         }
     }
-
+        // sort them so we test thresholds in order
         Collections.sort(uniqueVals);
 
         double bestEntropy = Double.POSITIVE_INFINITY;
         double bestThreshold = uniqueVals.get(0);
 
-        // test each observed value as a threshold:
-        // left child = values <= threshold, right child = values > threshold
+        // left child gets <= threshold
+        // right child gets > threshold
         for(int i = 0; i < uniqueVals.size() - 1; ++i){
             double threshold = uniqueVals.get(i);
 
@@ -345,7 +355,9 @@ public class DecisionTreeModel
                     rightRows.add(row);
             }
         }
-
+        //same as caase 1: compute the probability of going left or right
+        //build the label sets for the left and right child
+        // weighted conditional entropy of this threshold
         double leftProb = ((double)leftRows.size()) / n;
         double rightProb = ((double)rightRows.size()) / n;
 
@@ -354,15 +366,15 @@ public class DecisionTreeModel
 
         double curEntropy = leftProb * this.entropy(leftY) + rightProb * this.entropy(rightY);
 
-        // keep the threshold that makes the two child label sets as pure as possible
+        // keep the best split 
         if(curEntropy < bestEntropy){
             bestEntropy = curEntropy;
             bestThreshold = threshold;
         }
     }
 
-    // if every training example has the same feature value,
-    // then this continuous feature cannot actually separate the data
+    // if all training example has the same feature value,
+    // then this continuous feature cannot separate the data (I think.. Need Double check )
     if(uniqueVals.size() == 1){
         bestEntropy = this.entropy(y_gt);
         bestThreshold = uniqueVals.get(0);
@@ -382,27 +394,29 @@ public class DecisionTreeModel
             // find the child whose split value matches x[featureIdx]
             if(this.getFeatureType().equals(FeatureType.DISCRETE)){
                 double val = x.get(0, this.getFeatureIdx());
-
+                // find the child whose split value matches val
                 for(int i = 0; i < this.getSplitValues().size(); ++i){
                     if(this.getSplitValues().get(i) == val){
                         return this.getChildren().get(i).predict(x);
                     }
                 }
 
-                // test example has a discrete value that never appeared in training at this node
-                // fall back to this node's majority class
+                // if x has a discrete value we never saw during training,
+                // use the majority class stored at this node
                 return this.getMajorityClass();
             }
 
             // continuous feature:
-            // send x to the left child if x <= threshold, otherwise to the right child
+            //  compare x against the threshold and go left or right
             double threshold = this.getSplitValues().get(0);
             double val = x.get(0, this.getFeatureIdx());
 
             if(val <= threshold){
+                // left child stores rows with value <= threshold
                 return this.getChildren().get(0).predict(x);
             }
             else{
+                // right child stores rows with value > threshold
                 return this.getChildren().get(1).predict(x);
             }
         }
@@ -413,22 +427,24 @@ public class DecisionTreeModel
         {
             List<Pair<Matrix, Matrix> > childData = new ArrayList<Pair<Matrix, Matrix> >();
 
+            // where the bug ouur.. fix need
             // build the training set for each child of this node
             if(this.getFeatureType().equals(FeatureType.DISCRETE)){
                 // one child dataset for each observed discrete feature value
                 for(double splitVal : this.getSplitValues()){
                     List<Integer> rows = new ArrayList<Integer>();
 
-                    // collect all rows whose chosen feature exactly matches splitVal
+                    // collect all rows whose chosen feature equals splitVal
                     for(int row = 0; row < this.getX().getShape().numRows(); ++row){
                         if(this.getX().get(row, this.getFeatureIdx()) == splitVal){
                             rows.add(row);
                         }
                     }
-
+                    // build the child X and child y matrices for this branch
                     Matrix childX = this.sliceRows(this.getX(), rows);
                     Matrix childY = this.sliceRows(this.getY(), rows);
 
+                    // store the dataset pair for this child
                     childData.add(new Pair<Matrix, Matrix>(childX, childY));
                 }
             }else{
@@ -482,24 +498,27 @@ public class DecisionTreeModel
         Pair<Matrix, Matrix> uniqueYGtAndCounts = y_gt.unique();
         Matrix uniqueLabels = uniqueYGtAndCounts.first();
 
-        // stop splitting if every example at this node has the same class label
-        // this node is already pure, so a leaf is enough
+        // base case 1:
+        // if all labels at this node are the same, this node is pure
+        // so we stop splitting and make a leaf
         if(uniqueLabels.getShape().numRows() == 1){
             return new LeafNode(X, y_gt, this.getFeatureHeader());
         }
 
-        // stop splitting if there are no remaining legal features to branch on
-        // at this point the best we can do is predict the majority class
+        /// base case 2:
+        // if there are no legal features left, we cannot split anymore
+        // so we make a leaf that predicts the majority class
         if(availableColIdxs.isEmpty()){
             return new LeafNode(X, y_gt, this.getFeatureHeader());
         }
 
-        // otherwise create an interior node that chooses its best feature immediately
+        // build an interior node, which will choose its best feature recursively 
         InteriorNode node = new InteriorNode(X, y_gt, this.getFeatureHeader(), availableColIdxs);
         List<Pair<Matrix, Matrix> > childData = node.getChildData();
 
         // if the chosen feature did not produce a usable split, convert this node to a leaf
         if(childData == null || childData.size() <= 1){
+            // stop here and make a leaf instead
             return new LeafNode(X, y_gt, this.getFeatureHeader());
         }
 
