@@ -484,7 +484,7 @@ public class UnoMCTSAgent
         long Start_of_thinking_time = System.currentTimeMillis();
         // the buget can be smaller or bigger i use /4 so the test can be test much more safer
         // if want to make the agent to act more powerful, we can make it to /2 or more Note: just be careful about timeout
-        long budget = Math.max(1, this.getMaxThinkingTimeInMS()/2); 
+        long budget = Math.max(1, this.getMaxThinkingTimeInMS()/10); 
 
         //---------- while we still have budget to think keep loop running ----------
         while (System.currentTimeMillis() - Start_of_thinking_time < budget) {
