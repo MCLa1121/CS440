@@ -9,6 +9,9 @@ import edu.bu.pas.risk.action.Action;
 import edu.bu.pas.risk.agent.rewards.RewardFunction;
 import edu.bu.pas.risk.agent.rewards.RewardType;
 
+import java.util.HashSet;
+import java.util.Set;
+
 
 // JAVA PROJECT IMPORTS
 
@@ -36,7 +39,26 @@ public class MyActionRewardFunction
     public double getUpperBound() { return 100.0; }
 
     /** {@inheritDoc} */
-    public double getStateReward(final GameView state) { return 10.0; } // this sucks you'll need to change this
+    public double getStateReward(final GameView state) { 
+        // general idea:
+        // evaluate how good this state is for my agent
+        // reward states where:
+        // 1. I own more territories
+        // 2. I control more armies
+        // 3. fewer opponents are still alive
+        // 4. I receive more bonus armies
+
+        //initialization 
+        int myAgentId = this.getAgentId();
+
+        int myTerritories = 0;
+        int enemyTerritories = 0;
+
+        //a set that keep track of the eneny player owning 
+        Set<Integer> livingOpponents = new HashSet<Integer>();
+
+        
+     } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
