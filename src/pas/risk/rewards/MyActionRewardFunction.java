@@ -5,6 +5,7 @@ package pas.risk.rewards;
 import edu.bu.jmat.Pair;
 
 import edu.bu.pas.risk.GameView;
+import edu.bu.pas.risk.TerritoryOwnerView;
 import edu.bu.pas.risk.action.Action;
 import edu.bu.pas.risk.agent.rewards.RewardFunction;
 import edu.bu.pas.risk.agent.rewards.RewardType;
@@ -54,10 +55,30 @@ public class MyActionRewardFunction
         int myTerritories = 0;
         int enemyTerritories = 0;
 
+        int myArmies = 0;
+        int enemyArmies = 0;
+
         //a set that keep track of the eneny player owning 
         Set<Integer> livingOpponents = new HashSet<Integer>();
 
-        
+        //scan the board and count the current data(army, terrioies...)
+        for(TerritoryOwnerView ownerView : state.getTerritoryOwners()){
+            if(ownerView.isUnclaimed()){
+                continue;
+            }
+
+            int ownerId = ownerView.getOwner();
+            int armies = ownerView.getArmies();
+
+            if(ownerId == myAgentId){
+                myTerritories++;
+                myArmies += armies;
+            }else{
+                enemyTerritories++;
+                enemyArmies += armies;
+                livingOpponents.add(ownerId);
+            }
+        }
      } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
