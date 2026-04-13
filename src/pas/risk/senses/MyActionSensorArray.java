@@ -160,7 +160,9 @@ public class MyActionSensorArray
         gt.set(0, 8, features[8]);
         gt.set(0, 9, features[9]);
         
-        return Matrix.randn(1, NUM_FEATURES); // row vector
+        return gt; // row vector
+
+        // return Matrix.randn(1, NUM_FEATURES); // row vector
     }
 
 }
