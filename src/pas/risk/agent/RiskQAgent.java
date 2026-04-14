@@ -53,11 +53,40 @@ public class RiskQAgent
     extends NeuralQAgent
 {
 
+    // ----- epsilon-greedy exploration parameters -----
+    // start with high exploration, (pick random move) we want to explore 90% of the time at the beginning
+    private static final double EXPLORE_START = 0.90;
+    // end with low exploration, after a long time, explore 5% of the time that is random 
+    private static final double EXPLORE_END   = 0.05;
+    // how fast exploration decays , it control the transfer from 0.90 to 0.05, can be understnad as the learning rate
+    private static final double EXPLORE_DECAY = 5000.0;
+
+    // count the number of explore we have made in total
+    private int explore_counter = 0;
 
     public RiskQAgent(int agentId)
     {
         super(agentId);
     }
+
+    // private helper method to calculate the current exploratraion decay rate over time
+    private double getCurrentExploreDecayRate()
+    {
+        // calucate the decay
+        return EXPLORE_END + (EXPLORE_START - EXPLORE_END) * Math.exp(-1.0 * explore_counter / EXPLORE_DECAY);
+    }
+
+    // private helper method to determine whether we should explore 
+    private boolean go_Explore() 
+    {
+        double curr_Explore_decay_rate = getCurrentExploreDecayRate();
+        // increment the explore counter which next time result a lower decay rate
+        explore_counter ++;
+        // return the ture or false value to decide whether to explore or not
+        return (new Random()).nextDouble() < curr_Explore_decay_rate;
+    }
+
+
 
     /**
      * A method to create your neural network architecture. This is done by making three separate {@link Sequential}
@@ -196,7 +225,7 @@ public class RiskQAgent
                                                 final int actionCounter,
                                                 final boolean canRedeemCards)
     {
-        return (new Random()).nextBoolean();
+        return go_Explore();
     }
 
     /**
@@ -232,7 +261,7 @@ public class RiskQAgent
                                                               final int actionCounter,
                                                               final boolean canRedeemCards)
     {
-        return (new Random()).nextBoolean();
+        return go_Explore();
     }
 
     /**
@@ -268,7 +297,7 @@ public class RiskQAgent
                                                      final int actionCounter,
                                                      final boolean canRedeemCards)
     {
-        return (new Random()).nextBoolean();
+        return go_Explore();
     }
 
     /**
@@ -305,7 +334,7 @@ public class RiskQAgent
                                                final boolean isDuringSetup,
                                                final int remainingArmies)
     {
-        return (new Random()).nextBoolean();
+        return go_Explore();
     }
 
 }
