@@ -79,6 +79,33 @@ public class MyActionRewardFunction
                 livingOpponents.add(ownerId);
             }
         }
+
+        //we dont want to have a division by zero in the ratio
+        int totalTerritories = Math.max(1, myTerritories + enemyTerritories);
+        int totalArmies = Math.max(1, myArmies + enemyArmies);
+
+        // fraction of owned territories that belong to me
+        double territoryRatio = myTerritories / (double)totalTerritories;
+
+        // fraction of armies on the board that belong to me
+        double armyRatio = myArmies / (double)totalArmies;
+
+        // bonus armies at the start of a turn matter a lot in risk
+        // normalize it roughly into [0, 1] using 10 as a soft scale
+        double myBonus = state.getBonusArmiesFor(myAgentId);
+        double bonusScore = Math.max(0.0, Math.min(1.0, myBonus / 10.0));
+
+        // fewer living opponents is better
+        // if there are no opponents left, this term becomes 1.0
+        double opponentScore = 1.0 / (1.0 + livingOpponents.size());
+
+        // combine the parts into one score in [0, 1]
+        // for action reward, I care a bit more about expansion / board control
+        double score = 0.40 * territoryRatio + 0.30 * armyRatio + 0.20 * bonusScore + 0.10 * opponentScore;
+        
+        // convert [0, 1] into [-100, 100]
+        // 0.5 becomes 0, larger than 0.5 is good, smaller is bad
+        return 200.0 * (score - 0.5);
      } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
