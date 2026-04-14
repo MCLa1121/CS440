@@ -96,12 +96,12 @@ public class MyPlacementRewardFunction
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
-                                          final Territory action) { return Double.NEGATIVE_INFINITY; }
+                                          final Territory action) { return 0.0; }
 
     /** {@inheritDoc} */
     public double getFullTransitionReward(final GameView state,
                                           final Territory action,
-                                          final GameView nextState) { return Double.NEGATIVE_INFINITY; }
+                                          final GameView nextState) { return 0.0; }
 
 }
 

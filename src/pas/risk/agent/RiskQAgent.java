@@ -11,11 +11,13 @@ import edu.bu.pas.risk.agent.rewards.RewardFunction;
 import edu.bu.pas.risk.agent.senses.*;
 import edu.bu.pas.risk.model.DualDecoderModel;
 import edu.bu.pas.risk.territory.Territory;
+import edu.bu.pas.risk.action.NoAction;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
-
+import java.util.ArrayList;
+import java.util.Random;
 
 // JAVA PROJECT IMPORTS
 import pas.risk.rewards.MyActionRewardFunction;
@@ -207,6 +209,27 @@ public class RiskQAgent
                                              final boolean canRedeemCards)
     {
         final List<Action> options = this.getRedeemActions(game, actionCounter, canRedeemCards, true);
+        
+        // create a list of ture options that will hold the actions that will truely perfomr a task e.g turining card for troops
+        List<Action> True_Options = new ArrayList<Action>();
+
+        // itreate all possible action found in step
+        for(Action action : options)
+        {   
+            // if an action is a Noaction, then add the action to the true options list
+            if(!(action instanceof NoAction))
+            {
+                True_Options.add(action);
+            }
+        }
+        
+        // if the true options list is not  empty, then pick random and return it with true opetion list
+        if(!True_Options.isEmpty())
+        {
+            return chooseRandom(True_Options, new Random());
+        }
+        
+        // if the true option is empty , then just pick a random valid move
         return chooseRandom(options, new Random());
     }
 
@@ -243,6 +266,27 @@ public class RiskQAgent
                                                            final boolean canRedeemCards)
     {
         final List<Action> options = this.getAttackRedeemActions(game, actionCounter, canRedeemCards);
+        
+        // create a list of ture options that will hold the actions that will truely perfomr a task e.g turining card for troops
+        List<Action> True_Options = new ArrayList<Action>();
+
+        // itreate all possible action found in step
+        for(Action action : options)
+        {   
+            // if an action is a Noaction, then add the action to the true options list
+            if(!(action instanceof NoAction))
+            {
+                True_Options.add(action);
+            }
+        }
+        
+        // if the true options list is not  empty, then pick random and return it with true opetion list
+        if(!True_Options.isEmpty())
+        {
+            return chooseRandom(True_Options, new Random());
+        }
+        
+        // if the true option is empty , then just pick a random valid move
         return chooseRandom(options, new Random());
     }
 

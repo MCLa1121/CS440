@@ -110,12 +110,12 @@ public class MyActionRewardFunction
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
-                                          final Action action) { return Double.NEGATIVE_INFINITY; }
+                                          final Action action) { return 0.0; }
 
     /** {@inheritDoc} */
     public double getFullTransitionReward(final GameView state,
                                           final Action action,
-                                          final GameView nextState) { return Double.NEGATIVE_INFINITY; }
+                                          final GameView nextState) { return 0.0; }
 
 }
 
