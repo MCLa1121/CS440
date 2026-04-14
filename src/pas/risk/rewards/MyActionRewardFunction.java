@@ -36,7 +36,7 @@ public class MyActionRewardFunction
         super(RewardType.STATE, agentId); // change this enum if you don't want to do R(s)
     }
 
-    public double getLowerBound() { return 0.0; }
+    public double getLowerBound() { return -100.0; }
     public double getUpperBound() { return 100.0; }
 
     /** {@inheritDoc} */
