@@ -266,27 +266,6 @@ public class RiskQAgent
                                                            final boolean canRedeemCards)
     {
         final List<Action> options = this.getAttackRedeemActions(game, actionCounter, canRedeemCards);
-        
-        // create a list of ture options that will hold the actions that will truely perfomr a task e.g turining card for troops
-        List<Action> True_Options = new ArrayList<Action>();
-
-        // itreate all possible action found in step
-        for(Action action : options)
-        {   
-            // if an action is a Noaction, then add the action to the true options list
-            if(!(action instanceof NoAction))
-            {
-                True_Options.add(action);
-            }
-        }
-        
-        // if the true options list is not  empty, then pick random and return it with true opetion list
-        if(!True_Options.isEmpty())
-        {
-            return chooseRandom(True_Options, new Random());
-        }
-        
-        // if the true option is empty , then just pick a random valid move
         return chooseRandom(options, new Random());
     }
 
