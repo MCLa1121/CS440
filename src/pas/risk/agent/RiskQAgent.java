@@ -17,7 +17,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
-import java.util.Random;
 
 // JAVA PROJECT IMPORTS
 import pas.risk.rewards.MyActionRewardFunction;
@@ -266,6 +265,42 @@ public class RiskQAgent
                                                            final boolean canRedeemCards)
     {
         final List<Action> options = this.getAttackRedeemActions(game, actionCounter, canRedeemCards);
+        // after enough actions in one turn, prefer ending the turn(we need to prevent we get stuck)
+        if(actionCounter >= 10)
+        {
+            // itreatte over action 
+            for(Action action : options)
+            {   
+                // if the action is the instance of Noaction
+                if(action instanceof NoAction)
+                {
+                    // return action
+                    return action;
+                }
+            }
+        }
+
+        // otherwise avoid NoAction early if there are real attack or redeem moves
+        // create a ture options list
+        List<Action> True_Options = new ArrayList<Action>();
+
+        // iterate over action
+        for(Action action : options)
+        {   
+            // if not the instance of noactoin , add action to true options
+            if(!(action instanceof NoAction))
+            {   
+                True_Options.add(action);
+            }
+        }
+
+        // if the ture options is empty, then return random 
+        if(!True_Options.isEmpty())
+        {
+            return chooseRandom(True_Options, new Random());
+        }
+
+        // noting then return return with options
         return chooseRandom(options, new Random());
     }
 
