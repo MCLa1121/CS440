@@ -8,7 +8,6 @@ import edu.bu.pas.risk.GameView;
 import edu.bu.pas.risk.agent.senses.PlacementSensorArray;
 import edu.bu.pas.risk.territory.Territory;
 import edu.bu.pas.risk.TerritoryOwnerView;
-import edu.bu.pas.risk.territory.Territory;
 
 // JAVA PROJECT IMPORTS
 
