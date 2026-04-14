@@ -1,10 +1,14 @@
 package pas.risk.rewards;
 
 
+import java.util.HashSet;
+import java.util.Set;
+
 // SYSTEM IMPORTS
 import edu.bu.jmat.Pair;
 
 import edu.bu.pas.risk.GameView;
+import edu.bu.pas.risk.TerritoryOwnerView;
 import edu.bu.pas.risk.agent.rewards.RewardFunction;
 import edu.bu.pas.risk.agent.rewards.RewardType;
 import edu.bu.pas.risk.territory.Territory;
@@ -32,11 +36,63 @@ public class MyPlacementRewardFunction
         super(RewardType.STATE, agentId); // change this enum if you don't want to do R(s)
     }
 
-    public double getLowerBound() { return 0.0; }
+    //changed the lowered bound since we could probably get a negative number
+    public double getLowerBound() { return -100.0; }
     public double getUpperBound() { return 100.0; }
 
     /** {@inheritDoc} */
-    public double getStateReward(final GameView state) { return 10.0; } // this sucks you'll need to change this
+    public double getStateReward(final GameView state) { 
+        // general idea:
+        // placement decisions should help us build a strong board
+        // so this reward looks at how safe / strong our current position is overall
+        //generally look the same as the action reward function
+        
+        //initialization
+         int myAgentId = this.getAgentId();
+
+        int myTerritories = 0;
+        int enemyTerritories = 0;
+
+        int myArmies = 0;
+        int enemyArmies = 0;
+
+        Set<Integer> livingOpponents = new HashSet<Integer>();
+
+        //scan the board and count the current data(army, terrioies...)
+        for(TerritoryOwnerView ownerView : state.getTerritoryOwners()){
+            if(ownerView.isUnclaimed()){
+                continue;
+            }
+
+            int ownerId = ownerView.getOwner();
+            int armies = ownerView.getArmies();
+
+            if(ownerId == myAgentId){
+                myTerritories++;
+                myArmies += armies;
+            }else{
+                enemyTerritories++;
+                enemyArmies += armies;
+                livingOpponents.add(ownerId);
+            }
+        }
+        int totalTerritories = Math.max(1, myTerritories + enemyTerritories);
+        int totalArmies = Math.max(1, myArmies + enemyArmies);
+
+        // same normalized measurements as before
+        double territoryRatio = myTerritories / (double)totalTerritories;
+        double armyRatio = myArmies / (double)totalArmies;
+        double myBonus = state.getBonusArmiesFor(myAgentId);
+        double bonusScore = Math.max(0.0, Math.min(1.0, myBonus / 10.0));
+        double opponentScore = 1.0 / (1.0 + livingOpponents.size());
+
+        // Difference compare to Action reward
+        // for placement reward, I care more about army strength / bonus generation
+        // because placement mainly helps us stabilize and grow pressure for future turns
+        double score = 0.25 * territoryRatio + 0.40 * armyRatio + 0.25 * bonusScore + 0.10 * opponentScore;
+
+        return 200.0 * (score - 0.5);
+     } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
     public double getHalfTransitionReward(final GameView state,
