@@ -59,8 +59,12 @@ public class RiskQAgent
     private static final double EXPLORE_START = 0.90;
     // end with low exploration, after a long time, explore 5% of the time that is random 
     private static final double EXPLORE_END   = 0.05;
-    // how fast exploration decays , it control the transfer from 0.90 to 0.05, can be understnad as the learning rate
-    private static final double EXPLORE_DECAY = 5000.0;
+    // how fast exploration decays , it control the transfer from 0.90 to 0.0005, can be understnad as the learning rate
+    private static final double EXPLORE_DECAY = 500000.0;
+
+
+    private static final boolean DEBUG = false; // for debug use
+
 
     // count the number of explore we have made in total
     private int explore_counter = 0;
@@ -87,7 +91,14 @@ public class RiskQAgent
         return (new Random()).nextDouble() < curr_Explore_decay_rate;
     }
 
-
+    // a private helper method to help debug
+    private void debug(final String msg)
+    {
+        if(DEBUG)
+        {
+            System.out.println(msg);
+        }
+    }
 
     /**
      * A method to create your neural network architecture. This is done by making three separate {@link Sequential}
@@ -209,6 +220,7 @@ public class RiskQAgent
     {
         final List<Action> options = this.getRedeemActions(game, actionCounter, canRedeemCards, true);
         
+        debug("REDEEM phase: actionCounter=" + actionCounter + ", options=" + options.size());
         // create a list of ture options that will hold the actions that will truely perfomr a task e.g turining card for troops
         List<Action> True_Options = new ArrayList<Action>();
 
@@ -265,6 +277,8 @@ public class RiskQAgent
                                                            final boolean canRedeemCards)
     {
         final List<Action> options = this.getAttackRedeemActions(game, actionCounter, canRedeemCards);
+        
+        debug("ATTACK phase: actionCounter=" + actionCounter + ", options=" + options.size());        
         // after enough actions in one turn, prefer ending the turn(we need to prevent we get stuck)
         if(actionCounter >= 10)
         {
@@ -274,6 +288,7 @@ public class RiskQAgent
                 // if the action is the instance of Noaction
                 if(action instanceof NoAction)
                 {
+                    debug("ATTACK phase: forcing NoAction");
                     // return action
                     return action;
                 }
@@ -293,7 +308,7 @@ public class RiskQAgent
                 True_Options.add(action);
             }
         }
-
+        debug("ATTACK phase: trueOptions=" + True_Options.size());
         // if the ture options is empty, then return random 
         if(!True_Options.isEmpty())
         {
@@ -337,6 +352,40 @@ public class RiskQAgent
                                                   final boolean canRedeemCards)
     {
         final List<Action> options = this.getFortifyActions(game, actionCounter, canRedeemCards);
+        
+        debug("FORTIFY phase: actionCounter=" + actionCounter + ", options=" + options.size());
+       
+        // after enough actions in one turn, prefer ending the turn
+        if(actionCounter >= 10)
+            {
+                for(Action action : options)
+                {
+                    if(action instanceof NoAction)
+                    {
+                        debug("FORTIFY phase: forcing NoAction");
+                        return action;
+                    }
+                }
+            }
+        
+        // otherwise prefer real fortify moves early
+        List<Action> trueOptions = new ArrayList<Action>();
+        
+        for(Action action : options)
+        {
+            if(!(action instanceof NoAction))
+            {
+                    trueOptions.add(action);
+            }
+        }
+        
+        debug("FORTIFY phase: trueOptions=" + trueOptions.size());
+
+        if(!trueOptions.isEmpty())
+        {
+            return chooseRandom(trueOptions, new Random());
+        }
+        
         return chooseRandom(options, new Random());
     }
 
