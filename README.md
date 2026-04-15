@@ -9,9 +9,9 @@ This repository contains my work for **CS440**.
 ## Repo Structure
 
 - [`src/labs/`](./src/labs) — weekly lab work
-- [`src/pas/`](./src/pas) — Pac-Man group project work
+- [`src/pas/`](./src/pas) — Pac-Man，Uno and risk group project work
 
 ```text
 src/
   labs/   # weekly labs
-  pas/   # Pac-Man project
+  pas/   # Group project
