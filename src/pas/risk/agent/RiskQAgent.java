@@ -3,7 +3,7 @@ package pas.risk.agent;
 // SYSTEM IMPORTS
 import edu.bu.jnn.layers.*;
 import edu.bu.jnn.models.Sequential;
-
+import edu.bu.pas.risk.action.AttackAction;
 import edu.bu.pas.risk.GameView;
 import edu.bu.pas.risk.action.Action;
 import edu.bu.pas.risk.agent.NeuralQAgent;
@@ -60,7 +60,7 @@ public class RiskQAgent
     // end with low exploration, after a long time, explore 5% of the time that is random 
     private static final double EXPLORE_END   = 0.05;
     // how fast exploration decays , it control the transfer from 0.90 to 0.0005, can be understnad as the learning rate
-    private static final double EXPLORE_DECAY = 500000.0;
+    private static final double EXPLORE_DECAY = 10000.0;
 
 
     private static final boolean DEBUG = false; // for debug use
@@ -220,6 +220,13 @@ public class RiskQAgent
     {
         final List<Action> options = this.getRedeemActions(game, actionCounter, canRedeemCards, false);
         
+        // if options is empty (no cards to redeem), fall back with NoAction included
+        if(options.isEmpty())
+        {
+            return chooseRandom(this.getRedeemActions(game, actionCounter, canRedeemCards, true), new Random());
+        }
+
+
         debug("REDEEM phase: actionCounter=" + actionCounter + ", options=" + options.size());
         // create a list of ture options that will hold the actions that will truely perfomr a task e.g turining card for troops
         List<Action> True_Options = new ArrayList<Action>();
@@ -277,7 +284,8 @@ public class RiskQAgent
                                                            final boolean canRedeemCards)
     {
         final List<Action> options = this.getAttackRedeemActions(game, actionCounter, canRedeemCards);
-        
+        final Random random = new Random();
+
         debug("ATTACK phase: actionCounter=" + actionCounter + ", options=" + options.size());        
         // after enough actions in one turn, prefer ending the turn(we need to prevent we get stuck)
         if(actionCounter >= 10)
@@ -295,28 +303,45 @@ public class RiskQAgent
             }
         }
 
-        // otherwise avoid NoAction early if there are real attack or redeem moves
-        // create a ture options list
-        List<Action> True_Options = new ArrayList<Action>();
+        // ------------- we would like to attack when we are clealy strong ----------
+        // create an arraylist to store the perferable attck actoin
+        List<Action> Preferable_Attacks_action = new ArrayList<Action>();
+        // a lilst to store what ever , just do some attack no perfernce
+        List<Action> Some_Attack_action = new ArrayList<>();
 
-        // iterate over action
-        for(Action action : options)
-        {   
-            // if not the instance of noactoin , add action to true options
-            if(!(action instanceof NoAction))
-            {   
-                True_Options.add(action);
+        // itrate over actoin 
+        for (Action action : options) {
+            // if action is the instance of attackActin 
+            if (action instanceof AttackAction) {
+                AttackAction Attack_action = (AttackAction) action;
+                int my_Armies  = game.getTerritoryOwners().getById(Attack_action.from().id()).getArmies();
+                int Opp_Armies = game.getTerritoryOwners().getById(Attack_action.to().id()).getArmies();
+                // add the action to some attack attoin
+                Some_Attack_action.add(action);
+                // if wer are clearly as strong as the oppenent armies
+                if (my_Armies >= 2 * Opp_Armies) {
+                    // then aadd the action to perferce attack action , because we are stronger
+                    Preferable_Attacks_action.add(action);
+                }
+            // is the acton is not an instance of noction it mean it should be redeemcardsactoin
+            } else if (!(action instanceof NoAction)) {
+                // I mteans a RedeemCardsAction , which is a good idea to indcde here
+                Some_Attack_action.add(action);
             }
         }
-        debug("ATTACK phase: trueOptions=" + True_Options.size());
-        // if the ture options is empty, then return random 
-        if(!True_Options.isEmpty())
-        {
-            return chooseRandom(True_Options, new Random());
+
+        // if the perfenrable attck is empty , and use 80 percentage of chance to apply felxibliby
+        if (!Preferable_Attacks_action.isEmpty() && random.nextDouble() < 0.80) {
+            // return the list of advatage attck action
+            return chooseRandom(Preferable_Attacks_action, random);
         }
 
-        // noting then return return with options
-        return chooseRandom(options, new Random());
+        // is some attack action is not empty and perfernable attack action is empty
+        if (! Some_Attack_action.isEmpty()) {
+            // just return the list of some attack , do something
+            return chooseRandom(Some_Attack_action, random);
+        }
+        return chooseRandom(options, random); // only left acton is Noactons
     }
 
     /**

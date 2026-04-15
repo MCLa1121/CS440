@@ -102,10 +102,10 @@ public class MyActionRewardFunction
         // combine the parts into one score in [0, 1]
         // for action reward, I care a bit more about expansion / board control
         double score = 0.40 * territoryRatio + 0.30 * armyRatio + 0.20 * bonusScore + 0.10 * opponentScore;
-        
+        double lengthPenalty = -0.5 * Math.min(1.0, state.getNumTurns() / 200.0);
         // convert [0, 1] into [-100, 100]
         // 0.5 becomes 0, larger than 0.5 is good, smaller is bad
-        return 200.0 * (score - 0.5);
+        return 200.0 * (score - 0.5) + lengthPenalty * 10.0;
      } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
