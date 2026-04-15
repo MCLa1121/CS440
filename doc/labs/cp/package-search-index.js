@@ -1,0 +1,1 @@
+packageSearchIndex = [{"l":"All Packages","u":"allpackages-index.html"},{"l":"edu.bu.labs.cp"},{"l":"edu.bu.labs.cp.game"},{"l":"edu.bu.labs.cp.utils"}];updateSearchResults();
