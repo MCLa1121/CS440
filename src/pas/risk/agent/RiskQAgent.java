@@ -218,7 +218,7 @@ public class RiskQAgent
                                              final int actionCounter,
                                              final boolean canRedeemCards)
     {
-        final List<Action> options = this.getRedeemActions(game, actionCounter, canRedeemCards, true);
+        final List<Action> options = this.getRedeemActions(game, actionCounter, canRedeemCards, false);
         
         debug("REDEEM phase: actionCounter=" + actionCounter + ", options=" + options.size());
         // create a list of ture options that will hold the actions that will truely perfomr a task e.g turining card for troops
