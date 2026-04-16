@@ -183,6 +183,7 @@ public class ReplayBuffer
             if(!initialized || qVal > maxVal)
             {
                 maxVal = qVal;
+                initialized = true;
             }
         }
         return maxVal;
