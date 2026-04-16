@@ -119,6 +119,27 @@ public class Main
                     e.printStackTrace();
                     System.exit(-1);
                 }
+
+                // take the action in the environment
+                Triple<Matrix, Double, Boolean> obs = game.step(action);
+
+                Matrix nextState = obs.first();
+                double reward = obs.second();
+                isDone = obs.third();
+
+                // case 1:
+                // the game ended after this action
+                // so store a terminal transition
+                if(isDone){
+                    rb.addSample(state, reward, null);
+                }
+                // case 2:
+                // the game is still going
+                // so store a normal transition and move forward
+                else{
+                    rb.addSample(state, reward, nextState);
+                    state = nextState;
+                }
             }
         }
     }
