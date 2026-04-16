@@ -115,6 +115,61 @@ public class ReplayBuffer
         //      - We want to update any indexing information that we would need to keep the replacementType going
         //          - if there is space left, we need to increment this.getSize()
         //          - if there isn't space left and we have OLDEST replacement, we need to increment this.getNewestSampleIdx
+        
+        int insertIdx = -1;
+
+        // case 1:
+        // the replay buffer still has empty space
+        // so put the new sample in the next free row
+        if(this.size() < this.getPrevStates().getShape().numRows()){
+            insertIdx = this.size();
+            this.setSize(this.size() + 1);
+        }
+        // case 2:
+        // the replay buffer is already full
+        // so choose one old sample to overwrite
+        else{
+            insertIdx = this.chooseSampleToEvict();
+        }
+
+        try{
+            // store the previous state in the chosen row
+            this.getPrevStates().copySlice(insertIdx, insertIdx + 1, 0,
+                                        this.getPrevStates().getShape().numCols(),
+                                        prevState);
+
+            // store the reward for this transition
+            this.getRewards().set(insertIdx, 0, reward);
+
+            // case 1:
+            // this is a normal transition, so nextState exists
+            if(nextState != null){
+                // store the next state
+                this.getNextStates().copySlice(insertIdx, insertIdx + 1, 0,
+                                            this.getNextStates().getShape().numCols(),
+                                            nextState);
+
+                // mark this row as non-terminal
+                this.getIsStateTerminalMask()[insertIdx] = false;
+            }
+            // case 2:
+            // this is a terminal transition, so nextState is null
+            else{
+                // mark this row as terminal
+                this.getIsStateTerminalMask()[insertIdx] = true;
+            }
+
+            // if we are using oldest replacement,
+            // the newest inserted row becomes the newest sample
+            if(this.getReplacementType().equals(ReplacementType.OLDEST)){
+                this.setNewestSampleIdx(insertIdx);
+            }
+
+        } catch(Exception e){
+            System.err.println("[ERROR] ReplayBuffer.addSample: caught");
+            e.printStackTrace();
+            System.exit(-1);
+        }
     }
 
     public static double max(Matrix qValues) throws IndexOutOfBoundsException
