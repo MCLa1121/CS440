@@ -12,8 +12,8 @@ import edu.bu.pas.risk.agent.senses.*;
 import edu.bu.pas.risk.model.DualDecoderModel;
 import edu.bu.pas.risk.territory.Territory;
 import edu.bu.pas.risk.action.NoAction;
+import edu.bu.pas.risk.TerritoryOwnerView;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
@@ -30,8 +30,10 @@ public class RiskQAgent
 {
     private static final double EXPLORE_START = 0.90;
     private static final double EXPLORE_END   = 0.05;
-    private static final double EXPLORE_DECAY = 10000.0;
-    private static final double EVAL_EPSILON  = 0.5;
+    private static final double EXPLORE_DECAY = 500000.0;
+    private static final double EVAL_EPSILON  = 0.9;
+
+    private static final boolean DEBUG = false; // set to true to enable debug prints
 
     private int explore_counter = 0;
 
@@ -53,30 +55,47 @@ public class RiskQAgent
         return (new Random()).nextDouble() < rate;
     }
 
+    private void debug(String msg)
+    {
+        if(DEBUG) System.out.println(msg);
+    }
+
     // ----------------------------------------------------------------
-    // ARGMAX OVERRIDE — fixes forced-redeem elimination + eval stalling
+    // ARGMAX OVERRIDE (Action) — fixes forced-redeem + eval stalling
     // ----------------------------------------------------------------
     @Override
     public Action argmax(final GameView game,
                          final int actionCounter,
                          final List<Action> actions)
     {
+        debug("[DEBUG] argmax called: isTraining=" + this.isTraining() + " actionCounter=" + actionCounter + " actions.size()=" + actions.size());
+
+        // if only one action available just return it immediately
+        if(actions.size() == 1)
+        {
+            debug("[DEBUG] size=1: myTerritories=" +
+                game.getTerritoriesOwnedBy(this.agentId()).size() +
+                " isOver=" + game.isOver() +
+                " actionCounter=" + actionCounter);
+            return actions.get(0);
+        }
+
         int cardCount = game.getAgentInventory(this.agentId()).size();
         boolean forcedRedeem = (actionCounter == 0 && cardCount >= 5) || cardCount >= 6;
 
-        // if forced to redeem, never let model pick NoAction
         if (forcedRedeem) {
             List<Action> redeemOnly = new ArrayList<>();
             for (Action a : actions) {
                 if (!(a instanceof NoAction)) redeemOnly.add(a);
             }
             if (!redeemOnly.isEmpty()) {
+                debug("[DEBUG] forced redeem, redeemOnly.size()=" + redeemOnly.size());
                 return super.argmax(game, actionCounter, redeemOnly);
             }
         }
 
-        // during eval, inject small epsilon to prevent stalling
         if (!this.isTraining() && (new Random()).nextDouble() < EVAL_EPSILON) {
+            debug("[DEBUG] EVAL_EPSILON triggered");
             List<Action> preferred = new ArrayList<>();
             List<Action> anyAttack = new ArrayList<>();
             for (Action a : actions) {
@@ -90,11 +109,41 @@ public class RiskQAgent
                     anyAttack.add(a);
                 }
             }
+            debug("[DEBUG] preferred.size()=" + preferred.size() + " anyAttack.size()=" + anyAttack.size());
             if (!preferred.isEmpty()) return chooseRandom(preferred, new Random());
             if (!anyAttack.isEmpty()) return chooseRandom(anyAttack, new Random());
         }
 
+        debug("[DEBUG] falling through to super.argmax");
         return super.argmax(game, actionCounter, actions);
+    }
+
+    // ----------------------------------------------------------------
+    // ARGMAX OVERRIDE (Territory) — prevents stuck placement during eval
+    // ----------------------------------------------------------------
+    @Override
+    public Territory argmax(final GameView game, final boolean isDuringSetup, final int numRemainingArmies)
+    {
+        if(!this.isTraining())
+        {
+            List<Territory> options = this.getPotentialPlacements(game, isDuringSetup, numRemainingArmies);
+            List<Territory> border = new ArrayList<>();
+            for(Territory t : options)
+            {
+                for(Territory adj : t.adjacentTerritories())
+                {
+                    TerritoryOwnerView adjOv = game.getTerritoryOwners().getById(adj.id());
+                    if(adjOv.getOwner() != this.agentId() && adjOv.getOwner() != -1)
+                    {
+                        border.add(t);
+                        break;
+                    }
+                }
+            }
+            if(!border.isEmpty()) return chooseRandom(border, new Random());
+            if(!options.isEmpty()) return chooseRandom(options, new Random());
+        }
+        return super.argmax(game, isDuringSetup, numRemainingArmies);
     }
 
     // ----------------------------------------------------------------
@@ -174,14 +223,12 @@ public class RiskQAgent
                                              final int actionCounter,
                                              final boolean canRedeemCards)
     {
-        List<Action> options = this.getRedeemActions(game, actionCounter, canRedeemCards, false);
-        if (!options.isEmpty()) {
+        final List<Action> options = this.getRedeemActions(game, actionCounter, canRedeemCards, false);
+        if(!options.isEmpty())
+        {
             return chooseRandom(options, new Random());
         }
-        return chooseRandom(
-            this.getRedeemActions(game, actionCounter, canRedeemCards, true),
-            new Random()
-        );
+        return new NoAction(this.agentId());
     }
 
     @Override
@@ -191,7 +238,7 @@ public class RiskQAgent
     {
         int cardCount = game.getAgentInventory(this.agentId()).size();
         if ((actionCounter == 0 && cardCount >= 5) || cardCount >= 6) {
-            return true; // forced redeem — always explore, never let argmax pick NoAction
+            return true;
         }
         return go_Explore();
     }
