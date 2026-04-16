@@ -50,8 +50,9 @@ public class Dataset
         @Override
         public Pair<Matrix, Matrix> next()
         {
+            //possible bug caused by this, changed
             int rIdxStart = (int)(this.getBatchSize() * this.getCurrentBatchIdx());
-            int rIdxEnd = (int)((this.getBatchSize() + 1) * this.getCurrentBatchIdx());
+            int rIdxEnd = (int)((this.getBatchSize()) * (this.getCurrentBatchIdx()+ 1));
             if(rIdxEnd >= this.getFullX().getShape().numRows())
             {
                 rIdxEnd = this.getFullX().getShape().numRows();
