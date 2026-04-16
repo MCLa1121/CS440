@@ -215,8 +215,35 @@ public class ReplayBuffer
         // which could either be (s, r, s') or (s, r, null), so when calculating the bellman update for that row,
         // you need to check the mask to see which version you're calculating! 
 
+        Matrix Y = Matrix.zeros(this.size(), 1);
+        try{
+            // compute one bellman target per stored transition
+            for(int rIdx = 0; rIdx < this.size(); ++rIdx){
+                double reward = this.getRewards().get(rIdx, 0);
 
-        return null;
+                // case 1:
+                // terminal transition
+                // bellman target is just the immediate reward
+                if(this.getIsStateTerminalMask()[rIdx]){
+                    Y.set(rIdx, 0, reward);
+                }
+                // case 2:
+                // non-terminal transition
+                // bellman target = reward + gamma * max_a' Q(s', a')
+                else{
+                    Matrix nextState = this.getNextStates().getRow(rIdx);
+                    Matrix nextQValues = qFunction.forward(nextState);
+
+                    double target = reward + discountFactor * ReplayBuffer.max(nextQValues);
+                    Y.set(rIdx, 0, target);
+                }
+            }
+        }catch(Exception e){
+            System.err.println("[ERROR] ReplayBuffer.getGroundTruth: caught");
+            e.printStackTrace();
+            System.exit(-1);
+    }
+        return Y;
     }
 
     public Pair<Matrix, Matrix> getTrainingData(Model qFunction,
