@@ -1,0 +1,1 @@
+typeSearchIndex = [{"l":"All Classes and Interfaces","u":"allclasses-index.html"},{"p":"edu.bu.labs.cp.game","l":"Game"},{"p":"edu.bu.labs.cp","l":"GameTest"},{"p":"edu.bu.labs.cp.utils","l":"Triple"}];updateSearchResults();
