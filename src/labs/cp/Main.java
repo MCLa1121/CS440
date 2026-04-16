@@ -100,6 +100,26 @@ public class Main
             // TODO: complete me!
             // play a bunch of training games where you are not allowed to update the neural network
             // make sure to add transitions that you observe to the replay buffer, including the terminal transition!
+            // reset the environment at the start of each game
+            Matrix state = game.reset();
+            boolean isDone = false;
+
+            // keep stepping until the game ends
+            while(!isDone){
+                int action = -1;
+
+                try{
+                    // ask the q-function for the action values at this state
+                    Matrix qValues = qFunction.forward(state);
+
+                    // choose the best action according to the current q-function
+                    action = argmax(qValues);
+                } catch(Exception e){
+                    System.err.println("Main.train: error caught using qFunction");
+                    e.printStackTrace();
+                    System.exit(-1);
+                }
+            }
         }
     }
 
