@@ -36,8 +36,8 @@ public class MyActionRewardFunction
         super(RewardType.STATE, agentId); // change this enum if you don't want to do R(s)
     }
 
-    public double getLowerBound() { return -110.0; }
-    public double getUpperBound() { return 110.0; }
+    public double getLowerBound() { return -100.0; }
+    public double getUpperBound() { return 100.0; }
 
     /** {@inheritDoc} */
     public double getStateReward(final GameView state) { 
@@ -79,7 +79,15 @@ public class MyActionRewardFunction
                 livingOpponents.add(ownerId);
             }
         }
+        // WIN BONUS — massive reward for winning
+        if(livingOpponents.isEmpty()){
+            return 100.0;
+        }
 
+        // LOSING PENALTY — massive punishment for being eliminated
+        if(myTerritories == 0) { 
+            return -100.0;
+        }
         //we dont want to have a division by zero in the ratio
         int totalTerritories = Math.max(1, myTerritories + enemyTerritories);
         int totalArmies = Math.max(1, myArmies + enemyArmies);
@@ -102,10 +110,10 @@ public class MyActionRewardFunction
         // combine the parts into one score in [0, 1]
         // for action reward, I care a bit more about expansion / board control
         double score = 0.40 * territoryRatio + 0.30 * armyRatio + 0.20 * bonusScore + 0.10 * opponentScore;
-        double lengthPenalty = -0.5 * Math.min(1.0, state.getNumTurns() / 200.0);
-        // convert [0, 1] into [-100, 100]
+        double lengthPenalty = -5.0 * Math.min(1.0, state.getNumTurns() / 200.0);
+        // convert [0, 1] into [-80, 80]
         // 0.5 becomes 0, larger than 0.5 is good, smaller is bad
-        return 200.0 * (score - 0.5) + lengthPenalty * 10.0;
+        return 160.0 * (score - 0.5) + lengthPenalty;
      } // this sucks you'll need to change this
 
     /** {@inheritDoc} */

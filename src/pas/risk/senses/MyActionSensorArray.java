@@ -108,8 +108,12 @@ public class MyActionSensorArray
             features[5] = Math.min(1.0, Target_territory.getArmies() / 20.0);
 
             // Now we can update feature 6: detail explain in init (Note: store the number of dice we are  using when attaking)
-            features[6] = attack.attackingArmies() / 3.0;
+            features[6] = Math.min(1.0, attack.attackingArmies() / 3.0);
             
+            // attack advantage ratio: how much stronger we are than the ENEMPY WE ARE TARGETING
+            double Attack_Ratio = Origin_territory.getArmies() / (double)Math.max(1, Target_territory.getArmies());
+            features[7] = Math.min(1.0, Attack_Ratio / 5.0);
+
             // Now we can update feature 8: detail explain in init
             // default number of oppnent neigbors to 0
             int oppnent_neighbors = 0;

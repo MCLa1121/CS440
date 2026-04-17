@@ -76,6 +76,17 @@ public class MyPlacementRewardFunction
                 livingOpponents.add(ownerId);
             }
         }
+
+        // WIN BONUS — massive reward for winning
+        if(livingOpponents.isEmpty()){
+            return 100.0;
+        }
+
+        // LOSING PENALTY — massive punishment for being eliminated
+        if(myTerritories == 0) { 
+            return -100.0;
+        }
+
         int totalTerritories = Math.max(1, myTerritories + enemyTerritories);
         int totalArmies = Math.max(1, myArmies + enemyArmies);
 
@@ -91,7 +102,7 @@ public class MyPlacementRewardFunction
         // because placement mainly helps us stabilize and grow pressure for future turns
         double score = 0.25 * territoryRatio + 0.40 * armyRatio + 0.25 * bonusScore + 0.10 * opponentScore;
 
-        return 200.0 * (score - 0.5);
+        return 160.0 * (score - 0.5);
      } // this sucks you'll need to change this
 
     /** {@inheritDoc} */
