@@ -14,6 +14,7 @@ import edu.bu.pas.risk.territory.Territory;
 import edu.bu.pas.risk.action.NoAction;
 import edu.bu.pas.risk.TerritoryOwnerView;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Random;
 import java.util.ArrayList;
@@ -31,7 +32,16 @@ public class RiskQAgent
     private static final double EXPLORE_START = 0.90;
     private static final double EXPLORE_END   = 0.05;
     private static final double EXPLORE_DECAY = 500000.0;
-    private static final double EVAL_EPSILON  = 0.9;
+    private static final double EVAL_EPSILON  = 0.3;
+
+    // minimum exploration rate during training games — keeps games finishing fast
+    private static final double TRAIN_EXPLORE_FLOOR = 0.80;
+
+    // max actions to evaluate in argmax — prevents slowdown when armies accumulate
+    private static final int MAX_ACTIONS = 300;
+
+    // max turns per game — after this force aggressive attacks to end game
+    private static final int MAX_TURNS = 200;
 
     private static final boolean DEBUG = false; // set to true to enable debug prints
 
@@ -52,12 +62,44 @@ public class RiskQAgent
     {
         double rate = getCurrentExploreDecayRate();
         explore_counter++;
+        // during training always explore aggressively so games end quickly
+        if(this.isTraining()) return (new Random()).nextDouble() < Math.max(TRAIN_EXPLORE_FLOOR, rate);
+        // during eval use decayed rate to measure true model quality
         return (new Random()).nextDouble() < rate;
     }
 
     private void debug(String msg)
     {
         if(DEBUG) System.out.println(msg);
+    }
+
+    // helper to subsample a large action list — always keeps NoAction, samples rest
+    private List<Action> subsample(final List<Action> actions)
+    {
+        if(actions.size() <= MAX_ACTIONS) return actions;
+
+        debug("[DEBUG] subsampling actions from " + actions.size() + " to " + MAX_ACTIONS);
+
+        List<Action> result = new ArrayList<>();
+        List<Action> attackOnly = new ArrayList<>();
+
+        for(Action a : actions) {
+            if(a instanceof NoAction) result.add(a);
+            else attackOnly.add(a);
+        }
+
+        Collections.shuffle(attackOnly, new Random());
+        result.addAll(attackOnly.subList(0, Math.min(MAX_ACTIONS, attackOnly.size())));
+        return result;
+    }
+
+    // helper to find NoAction from a list
+    private Action findNoAction(final List<Action> actions)
+    {
+        for(Action a : actions) {
+            if(a instanceof NoAction) return a;
+        }
+        return actions.get(0);
     }
 
     // ----------------------------------------------------------------
@@ -68,16 +110,31 @@ public class RiskQAgent
                          final int actionCounter,
                          final List<Action> actions)
     {
-        debug("[DEBUG] argmax called: isTraining=" + this.isTraining() + " actionCounter=" + actionCounter + " actions.size()=" + actions.size());
+        // ---- after MAX_TURNS force aggressive attack to end game quickly ----
+        if(game.getNumTurns() > MAX_TURNS)
+        {
+            debug("[DEBUG] MAX_TURNS exceeded, forcing aggressive attack");
+            List<Action> attacks = new ArrayList<>();
+            for(Action a : actions) {
+                if(a instanceof AttackAction) attacks.add(a);
+            }
+            if(!attacks.isEmpty()) return chooseRandom(attacks, new Random());
+            return findNoAction(actions);
+        }
+
+        // ---- SUBSAMPLE FIRST before any processing ----
+        final List<Action> workingActions = subsample(actions);
+
+        debug("[DEBUG] argmax called: isTraining=" + this.isTraining() + " actionCounter=" + actionCounter + " actions.size()=" + workingActions.size());
 
         // if only one action available just return it immediately
-        if(actions.size() == 1)
+        if(workingActions.size() == 1)
         {
             debug("[DEBUG] size=1: myTerritories=" +
                 game.getTerritoriesOwnedBy(this.agentId()).size() +
                 " isOver=" + game.isOver() +
                 " actionCounter=" + actionCounter);
-            return actions.get(0);
+            return workingActions.get(0);
         }
 
         int cardCount = game.getAgentInventory(this.agentId()).size();
@@ -85,7 +142,7 @@ public class RiskQAgent
 
         if (forcedRedeem) {
             List<Action> redeemOnly = new ArrayList<>();
-            for (Action a : actions) {
+            for (Action a : workingActions) {
                 if (!(a instanceof NoAction)) redeemOnly.add(a);
             }
             if (!redeemOnly.isEmpty()) {
@@ -98,7 +155,7 @@ public class RiskQAgent
             debug("[DEBUG] EVAL_EPSILON triggered");
             List<Action> preferred = new ArrayList<>();
             List<Action> anyAttack = new ArrayList<>();
-            for (Action a : actions) {
+            for (Action a : workingActions) {
                 if (a instanceof AttackAction) {
                     AttackAction atk = (AttackAction) a;
                     int mine = game.getTerritoryOwners().getById(atk.from().id()).getArmies();
@@ -115,7 +172,7 @@ public class RiskQAgent
         }
 
         debug("[DEBUG] falling through to super.argmax");
-        return super.argmax(game, actionCounter, actions);
+        return super.argmax(game, actionCounter, workingActions);
     }
 
     // ----------------------------------------------------------------
@@ -251,7 +308,21 @@ public class RiskQAgent
         final List<Action> options = this.getAttackRedeemActions(game, actionCounter, canRedeemCards);
         final Random random = new Random();
 
-        if (actionCounter >= 10) {
+        // after MAX_TURNS force aggressive attacks to end game quickly
+        if(game.getNumTurns() > MAX_TURNS)
+        {
+            debug("[DEBUG] MAX_TURNS exceeded in exploration, forcing attack");
+            List<Action> anyAttack = new ArrayList<>();
+            for(Action a : options) {
+                if(a instanceof AttackAction) anyAttack.add(a);
+            }
+            if(!anyAttack.isEmpty()) return chooseRandom(anyAttack, random);
+            return findNoAction(options);
+        }
+
+        // normal turn limit
+        if(actionCounter >= 10)
+        {
             for (Action a : options) {
                 if (a instanceof NoAction) return a;
             }
