@@ -79,7 +79,7 @@ public class MyStateSensorArray
             }
         }
         // store my total armies in feature 4 (remember to normalize it !!)
-        features[4] = Math.min(1.0, My_Armies / 100.0);
+        features[4] = Math.log1p(My_Armies) / Math.log1p(200.0);
 
         // ----- feature 5 ----- Total armies for enemy agents in the game world
         // set the number of opponent armies in total to 0
@@ -92,7 +92,7 @@ public class MyStateSensorArray
             }
         }
         // store oppoents total armies in feature 5 (remember to normalize it !!)
-        features[5] = Math.min(1.0, Opponent_Armies / 100.0);
+        features[5] = Math.log1p(Opponent_Armies) / Math.log1p(200.0);
 
         // ----- feature 6 ----- my army over total armies include oppenents armies
         // calculate the total armies in the map

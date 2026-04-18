@@ -102,7 +102,8 @@ public class MyPlacementRewardFunction
         // because placement mainly helps us stabilize and grow pressure for future turns
         double score = 0.25 * territoryRatio + 0.40 * armyRatio + 0.25 * bonusScore + 0.10 * opponentScore;
 
-        return (score * 50.0);
+        return (score - 0.5) * 10.0;
+
      } // this sucks you'll need to change this
 
     /** {@inheritDoc} */

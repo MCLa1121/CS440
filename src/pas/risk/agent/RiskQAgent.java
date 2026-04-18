@@ -124,8 +124,9 @@ public class RiskQAgent
                 return findNoAction(sampled);
             }
 
-        // ---- SUBSAMPLE FIRST before any processing ----
-        final List<Action> workingActions = subsample(actions);
+        // Only subsample during training; use all actions during eval for better decisions
+        final List<Action> workingActions = this.isTraining() ? subsample(actions) : 
+        (actions.size() <= MAX_ACTIONS ? actions : subsample(actions));
 
         debug("[DEBUG] argmax called: isTraining=" + this.isTraining() + " actionCounter=" + actionCounter + " actions.size()=" + workingActions.size());
 

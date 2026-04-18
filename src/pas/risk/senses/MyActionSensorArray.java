@@ -102,10 +102,10 @@ public class MyActionSensorArray
             TerritoryOwnerView Target_territory = state.getTerritoryOwners().getById(attack.to().id());
             
             // Now we can update feature 4: detail explain in init
-            features[4] = Math.min(1.0, Origin_territory.getArmies() / 20.0);
+            features[4] = Math.log1p(Origin_territory.getArmies()) / Math.log1p(100.0);
 
             // Now we can update feature 5: detail explain in init
-            features[5] = Math.min(1.0, Target_territory.getArmies() / 20.0);
+            features[5] = Math.log1p(Target_territory.getArmies()) / Math.log1p(100.0);
 
             // Now we can update feature 6: detail explain in init (Note: store the number of dice we are  using when attaking)
             features[6] = Math.min(1.0, attack.attackingArmies() / 3.0);
@@ -139,10 +139,10 @@ public class MyActionSensorArray
             TerritoryOwnerView Target_territory = state.getTerritoryOwners().getById(Fort_act.to().id());
             
             // Now we can update feature 4: detail explain in init
-            features[4] = Math.min(1.0, Origin_territory.getArmies() / 20.0);
+            features[4] = Math.log1p(Origin_territory.getArmies()) / Math.log1p(100.0);
 
             // Now we can update feature 5: detail explain in init
-            features[5] = Math.min(1.0, Target_territory.getArmies() / 20.0);
+            features[5] = Math.log1p(Target_territory.getArmies()) / Math.log1p(100.0);
 
             // Now we can update feature 7: detail explain in init (arimes are being moved)
             features[7] = Math.min(1.0, Fort_act.deltaArmies() / 20.0);

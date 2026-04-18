@@ -39,7 +39,8 @@ public class MyPlacementSensorArray
         TerritoryOwnerView Territory_view = state.getTerritoryOwners().getById(territory.id());
 
         // ----- feature 0 ----- current armies on this territory (also normalized by 20)
-        features[0] = Math.min(1.0, Territory_view.getArmies() / 20.0);
+        features[0] = Math.log1p(Territory_view.getArmies()) / Math.log1p(100.0);
+
 
         // ----- feature 1 ----- number of (oppenent) neighbours around the territory (normalized by 6)
         // we default a oppoent neghbour to 0
