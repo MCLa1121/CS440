@@ -32,16 +32,16 @@ public class RiskQAgent
     private static final double EXPLORE_START = 0.90;
     private static final double EXPLORE_END   = 0.05;
     private static final double EXPLORE_DECAY = 500000.0;
-    private static final double EVAL_EPSILON  = 0.3;
+    private static final double EVAL_EPSILON  = 0.1;
 
     // minimum exploration rate during training games — keeps games finishing fast
     private static final double TRAIN_EXPLORE_FLOOR = 0.80;
 
     // max actions to evaluate in argmax — prevents slowdown when armies accumulate
-    private static final int MAX_ACTIONS = 300;
+    private static final int MAX_ACTIONS = 6000;
 
     // max turns per game — after this force aggressive attacks to end game
-    private static final int MAX_TURNS = 200;
+    private static final int MAX_TURNS = 2000;
 
     private static final boolean DEBUG = false; // set to true to enable debug prints
 
@@ -112,15 +112,17 @@ public class RiskQAgent
     {
         // ---- after MAX_TURNS force aggressive attack to end game quickly ----
         if(game.getNumTurns() > MAX_TURNS)
-        {
-            debug("[DEBUG] MAX_TURNS exceeded, forcing aggressive attack");
-            List<Action> attacks = new ArrayList<>();
-            for(Action a : actions) {
-                if(a instanceof AttackAction) attacks.add(a);
+            {
+                debug("[DEBUG] MAX_TURNS exceeded, forcing aggressive attack");
+                List<Action> attacks = new ArrayList<>();
+                // subsample first to avoid iterating 187k actions
+                List<Action> sampled = subsample(actions);
+                for(Action a : sampled) {
+                    if(a instanceof AttackAction) attacks.add(a);
+                }
+                if(!attacks.isEmpty()) return chooseRandom(attacks, new Random());
+                return findNoAction(sampled);
             }
-            if(!attacks.isEmpty()) return chooseRandom(attacks, new Random());
-            return findNoAction(actions);
-        }
 
         // ---- SUBSAMPLE FIRST before any processing ----
         final List<Action> workingActions = subsample(actions);
