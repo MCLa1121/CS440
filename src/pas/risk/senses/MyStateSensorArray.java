@@ -196,7 +196,7 @@ public class MyStateSensorArray
         // default a difference between bouns with my agents and best oppents bouns
         double Diff_Bouns = state.getBonusArmiesFor(my_id) - best_opp_bouns;
         // store and noramlize the difference to feature 14 (we want to make the number smal, and we constrain the number to be between -1.0 and 1.0)
-        features[14] = Math.max(-1.0, Math.min(1.0, Diff_Bouns / 10.0));
+        features[14] = (Math.max(-1.0, Math.min(1.0, Diff_Bouns / 10.0)) + 1.0) / 2.0;
 
         // create a row vector : a row vector is 1 * size of the features
         Matrix gt = Matrix.zeros(1, NUM_FEATURES);
