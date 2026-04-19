@@ -35,7 +35,7 @@ public class RiskQAgent
     private static final double EVAL_EPSILON  = 0.1;
 
     // minimum exploration rate during training games — keeps games finishing fast
-    private static final double TRAIN_EXPLORE_FLOOR = 0.80;
+    private static final double TRAIN_EXPLORE_FLOOR = 0.05;
 
     // max actions to evaluate in argmax — prevents slowdown when armies accumulate
     private static final int MAX_ACTIONS = 6000;

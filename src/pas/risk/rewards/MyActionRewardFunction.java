@@ -113,7 +113,7 @@ public class MyActionRewardFunction
         double lengthPenalty = -1.0 * Math.min(1.0, state.getNumTurns() / 600.0);
         // convert [0, 1] into [-80, 80]
         // 0.5 becomes 0, larger than 0.5 is good, smaller is bad
-        return (score - 0.5) * 10.0 + lengthPenalty;
+        return score * 2.0 + lengthPenalty;
 
      } // this sucks you'll need to change this
 
