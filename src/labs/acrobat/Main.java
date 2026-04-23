@@ -102,7 +102,7 @@ public class Main
             while(!done && (t < maxTimeSteps))
             {
                 int action;
-                if(random.nextDouble() < epsilon) { action = new Random().nextInt(3); }
+                if(random.nextDouble() < epsilon) { action = random.nextInt(3); }
                 else { action = agent.argmax(state); }
 
                 Triple<Matrix, Double, Boolean> triple = game.step(action);
@@ -150,10 +150,11 @@ public class Main
                  if(!done){
                     yGt = yGt + gamma * agent.max(nextState);
                 }
-                    agent.update(state,
-                                 Matrix.full(1, 1, action),
-                                 Matrix.full(1, 1, reward + gamma*agent.max(nextState)),
-                                 lr);
+                    // agent.update(state,
+                    //              Matrix.full(1, 1, action),
+                    //              Matrix.full(1, 1, reward + gamma*agent.max(nextState)),
+                    //              lr);
+                    agent.update(state,Matrix.full(1, 1, action),Matrix.full(1, 1, yGt),lr);
                 }
                 state = nextState;
                 numMoves += 1;
@@ -339,4 +340,5 @@ public class Main
                 + results.first() + " avg(game_length)=" + results.second());
         }
     }
+    //testing:java -cp ".\lib\*;.\src;." labs.acrobat.Main NEURAL -p 3 -t 50 -v 10 -g 0.99 -n 0.01 -u 1 -b 500 -m 64 -r 50
 }
