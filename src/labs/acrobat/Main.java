@@ -109,12 +109,47 @@ public class Main
                 Matrix nextState = triple.first();
                 reward = triple.second();
                 done = triple.third();
+                if(isNeural){
+                    // add every transition to the replay buffer
+                    if(done){
+                        rb.addSample(state, reward, null);
+                    }else{
+                        rb.addSample(state, reward, nextState);
+                    }
+                // Only train every updatePeriod moves.
+                // every updatePeriod moves, sample a batch and train numUpdates times
+                //so we seperate the isNeural check and adding a new sizw check 
+                if((numMoves > 0) && ((numMoves % updatePeriod) == 0)&& (rb.size() > 0))
+                {
+                    // Ask the replay buffer for:
+                    //   batch.first()  = batch of previous states
+                    //   batch.second() = Bellman ground-truth targets
+                    Pair<Matrix, Matrix> batch = rb.sampleBatch(((NeuralAgent)agent).getQFunction(),gamma,batchSize);
 
-                if(isNeural && (numMoves > 0) && ((numMoves % updatePeriod) == 0))
-                {
-                    throw new Exception("TODO: complete me!");
-                } else if(!isNeural)
-                {
+                    Matrix batchStates = batch.first();
+                    Matrix batchYGt = batch.second();
+
+                    // NeuralAgent.update requires an actions matrix parameter,
+                    // but the current NeuralAgent ignores it, so we can maintain a empty matrix.
+                    // Causing bug, instead we create a dummy matrix with the correct number of rows
+                    Matrix dummyActions = Matrix.zeros(batchStates.getShape().numRows(), 1);
+
+                    // iterate the number of gradient updates on this same batch.
+                    for(int updateIdx = 0; updateIdx < numUpdates; ++updateIdx){
+                        agent.update(batchStates,
+                        dummyActions,
+                        batchYGt,
+                        lr);
+                    }
+                }
+            }else{
+                //where we will have the discretized agrnt trianing
+                 double yGt = reward;
+                 // If the episode is not over, 
+                 // include the estimate of the best future Q-value.
+                 if(!done){
+                    yGt = yGt + gamma * agent.max(nextState);
+                }
                     agent.update(state,
                                  Matrix.full(1, 1, action),
                                  Matrix.full(1, 1, reward + gamma*agent.max(nextState)),
