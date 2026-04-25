@@ -32,7 +32,7 @@ public class RiskQAgent
     private static final double EXPLORE_START = 0.90;
     private static final double EXPLORE_END   = 0.05;
     private static final double EXPLORE_DECAY = 500000.0;
-    private static final double EVAL_EPSILON  = 0.1;
+    private static final double EVAL_EPSILON  = 0.0;
 
     // minimum exploration rate during training games — keeps games finishing fast
     private static final double TRAIN_EXPLORE_FLOOR = 0.05;
@@ -60,12 +60,12 @@ public class RiskQAgent
 
     private boolean go_Explore()
     {
+        // during eval NEVER explore — always use the trained Q-function
+        if(!this.isTraining()) return false;
+        // during training explore at decayed rate (with floor)
         double rate = getCurrentExploreDecayRate();
         explore_counter++;
-        // during training always explore aggressively so games end quickly
-        if(this.isTraining()) return (new Random()).nextDouble() < Math.max(TRAIN_EXPLORE_FLOOR, rate);
-        // during eval use decayed rate to measure true model quality
-        return (new Random()).nextDouble() < rate;
+        return (new Random()).nextDouble() < Math.max(TRAIN_EXPLORE_FLOOR, rate);
     }
 
     private void debug(String msg)
