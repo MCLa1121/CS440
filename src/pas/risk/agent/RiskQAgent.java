@@ -179,6 +179,34 @@ public class RiskQAgent
     }
 
     // ----------------------------------------------------------------
+    // ARGMAX OVERRIDE (Territory) — prevents stuck placement during eval
+    // ----------------------------------------------------------------
+    @Override
+    public Territory argmax(final GameView game, final boolean isDuringSetup, final int numRemainingArmies)
+    {
+        if(!this.isTraining())
+        {
+            List<Territory> options = this.getPotentialPlacements(game, isDuringSetup, numRemainingArmies);
+            List<Territory> border = new ArrayList<>();
+            for(Territory t : options)
+            {
+                for(Territory adj : t.adjacentTerritories())
+                {
+                    TerritoryOwnerView adjOv = game.getTerritoryOwners().getById(adj.id());
+                    if(adjOv.getOwner() != this.agentId() && adjOv.getOwner() != -1)
+                    {
+                        border.add(t);
+                        break;
+                    }
+                }
+            }
+            if(!border.isEmpty()) return chooseRandom(border, new Random());
+            if(!options.isEmpty()) return chooseRandom(options, new Random());
+        }
+        return super.argmax(game, isDuringSetup, numRemainingArmies);
+    }
+
+    // ----------------------------------------------------------------
     // MODEL ARCHITECTURE
     // ----------------------------------------------------------------
     @Override
