@@ -1,3 +1,4 @@
+
 package pas.risk.agent;
 
 // SYSTEM IMPORTS
@@ -32,7 +33,7 @@ public class RiskQAgent
     private static final double EXPLORE_START = 0.90;
     private static final double EXPLORE_END   = 0.05;
     private static final double EXPLORE_DECAY = 500000.0;
-    private static final double EVAL_EPSILON  = 0.0;
+    private static final double EVAL_EPSILON  = 0.1;
 
     // minimum exploration rate during training games — keeps games finishing fast
     private static final double TRAIN_EXPLORE_FLOOR = 0.05;
@@ -60,12 +61,12 @@ public class RiskQAgent
 
     private boolean go_Explore()
     {
-        // during eval NEVER explore — always use the trained Q-function
-        if(!this.isTraining()) return false;
-        // during training explore at decayed rate (with floor)
         double rate = getCurrentExploreDecayRate();
         explore_counter++;
-        return (new Random()).nextDouble() < Math.max(TRAIN_EXPLORE_FLOOR, rate);
+        // during training always explore aggressively so games end quickly
+        if(this.isTraining()) return (new Random()).nextDouble() < Math.max(TRAIN_EXPLORE_FLOOR, rate);
+        // during eval use decayed rate to measure true model quality
+        return (new Random()).nextDouble() < rate;
     }
 
     private void debug(String msg)
@@ -384,26 +385,7 @@ public class RiskQAgent
                                              final int remainingArmies)
     {
         final List<Territory> options = this.getPotentialPlacements(game, isDuringSetup, remainingArmies);
-        final Random random = new Random();
-    
-        List<Territory> border = new ArrayList<>();
-    
-        for(Territory t : options) {
-            for(Territory adj : t.adjacentTerritories()) {
-                TerritoryOwnerView adjOv = game.getTerritoryOwners().getById(adj.id());
-    
-                if(adjOv.getOwner() != this.agentId() && adjOv.getOwner() != -1) {
-                    border.add(t);
-                    break;
-                }
-            }
-        }
-    
-        if(!border.isEmpty() && random.nextDouble() < 0.80) {
-            return chooseRandom(border, random);
-        }
-    
-        return chooseRandom(options, random);
+        return chooseRandom(options, new Random());
     }
 
     @Override
