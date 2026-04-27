@@ -384,7 +384,26 @@ public class RiskQAgent
                                              final int remainingArmies)
     {
         final List<Territory> options = this.getPotentialPlacements(game, isDuringSetup, remainingArmies);
-        return chooseRandom(options, new Random());
+        final Random random = new Random();
+    
+        List<Territory> border = new ArrayList<>();
+    
+        for(Territory t : options) {
+            for(Territory adj : t.adjacentTerritories()) {
+                TerritoryOwnerView adjOv = game.getTerritoryOwners().getById(adj.id());
+    
+                if(adjOv.getOwner() != this.agentId() && adjOv.getOwner() != -1) {
+                    border.add(t);
+                    break;
+                }
+            }
+        }
+    
+        if(!border.isEmpty() && random.nextDouble() < 0.80) {
+            return chooseRandom(border, random);
+        }
+    
+        return chooseRandom(options, random);
     }
 
     @Override
