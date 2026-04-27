@@ -50,18 +50,18 @@ public class MyActionRewardFunction
         // 4. I receive more bonus armies
 
         //initialization 
-        int myAgentId = this.getAgentId();
+        int my_agentId = this.getAgentId();
 
-        int myTerritories = 0;
-        int enemyTerritories = 0;
+        int my_territories = 0;
+        int enemy_territories = 0;
 
-        int myArmies = 0;
-        int enemyArmies = 0;
+        int my_armies = 0;
+        int enemy_armies = 0;
 
         //a set that keep track of the eneny player owning 
-        Set<Integer> livingOpponents = new HashSet<Integer>();
+        Set<Integer> living_opponents = new HashSet<Integer>();
 
-        //scan the board and count the current data(army, terrioies...)
+        //scan the board and count the current data(army, terrioies...) (same as we did plaement reward funtion)
         for(TerritoryOwnerView ownerView : state.getTerritoryOwners()){
             if(ownerView.isUnclaimed()){
                 continue;
@@ -70,42 +70,42 @@ public class MyActionRewardFunction
             int ownerId = ownerView.getOwner();
             int armies = ownerView.getArmies();
 
-            if(ownerId == myAgentId){
-                myTerritories++;
-                myArmies += armies;
+            if(ownerId == my_agentId){
+                my_territories++;
+                my_armies += armies;
             }else{
-                enemyTerritories++;
-                enemyArmies += armies;
-                livingOpponents.add(ownerId);
+                enemy_territories++;
+                enemy_armies += armies;
+                living_opponents.add(ownerId);
             }
         }
-        // WIN BONUS — massive reward for winning
-        if(livingOpponents.isEmpty()){
+        // Here is the winning bouns, if the agent win, then the agent will face a huge winning bonous
+        if(living_opponents.isEmpty()){
             return 100.0;
         }
 
-        // LOSING PENALTY — massive punishment for being eliminated
-        if(myTerritories == 0) { 
+        // Here is the losing bouns, if the agent lose, then the agent will fase huge penaflty
+        if(my_territories == 0) { 
             return -100.0;
         }
         //we dont want to have a division by zero in the ratio
-        int totalTerritories = Math.max(1, myTerritories + enemyTerritories);
-        int totalArmies = Math.max(1, myArmies + enemyArmies);
+        int totalTerritories = Math.max(1, my_territories + enemy_territories);
+        int totalArmies = Math.max(1, my_armies + enemy_armies);
 
         // fraction of owned territories that belong to me
-        double territoryRatio = myTerritories / (double)totalTerritories;
+        double territoryRatio = my_territories / (double)totalTerritories;
 
         // fraction of armies on the board that belong to me
-        double armyRatio = myArmies / (double)totalArmies;
+        double armyRatio = my_armies / (double)totalArmies;
 
         // bonus armies at the start of a turn matter a lot in risk
         // normalize it roughly into [0, 1] using 10 as a soft scale
-        double myBonus = state.getBonusArmiesFor(myAgentId);
+        double myBonus = state.getBonusArmiesFor(my_agentId);
         double bonusScore = Math.max(0.0, Math.min(1.0, myBonus / 10.0));
 
         // fewer living opponents is better
         // if there are no opponents left, this term becomes 1.0
-        double opponentScore = 1.0 / (1.0 + livingOpponents.size());
+        double opponentScore = 1.0 / (1.0 + living_opponents.size());
 
         // combine the parts into one score in [0, 1]
         // for action reward, I care a bit more about expansion / board control
